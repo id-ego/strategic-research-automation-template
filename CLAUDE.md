@@ -1,4 +1,4 @@
-# Claude Code Guidelines for OilField Project
+# Claude Code Guidelines for Strategic Research Automation
 
 ## Task Execution Strategy
 
@@ -9,7 +9,7 @@ Extensively use tasks and subtasks (Task tool) to optimize the context usage.
 Extensively use parallel tasks and subtasks (multiple Task tools running in the same message) to make the work be done much faster.
 
 ### Map-Reduce Approach
-Use map-reduce approach with parallel tasks and subtasks.
+Use map-reduce approach with parallel tasks and subtasks for research decomposition.
 
 ### Task Reporting
 Ensure each task or subtask reports back a very brief explanation on what was done, and what still needs to be done (if any).
@@ -23,74 +23,156 @@ Extensively use planning (with TodoWrite tool), so all work is being thoroughly 
 ### Parallelization Limits
 The maximum number of tasks or subtasks running in parallel should not be more than CPU cores on this machine.
 
-## Software Engineering Principles
+## Research Principles
 
-### SOLID Principles
-You must religiously follow SOLID principles:
-- **S**ingle Responsibility Principle
-- **O**pen/Closed Principle
-- **L**iskov Substitution Principle
-- **I**nterface Segregation Principle
-- **D**ependency Inversion Principle
+### Evidence-Based Research
+All claims must be supported by credible citations from:
+- Industry regulations and standards
+- Academic research and peer-reviewed journals
+- Market reports from reputable firms
+- Technical documentation and specifications
+- Expert interviews (with permission)
 
-### Additional Principles
-- **KISS** (Keep It Simple, Stupid)
-- **DRY** (Don't Repeat Yourself)
-- **YAGNI** (You Aren't Gonna Need It)
-- **TRIZ** (Theory of Inventive Problem Solving)
+### Citation Format
+Follow the citation style specified in `config/project-config.yml` (default: APA).
 
-## Development Process
+### Source Quality Standards
+Prioritize authoritative sources:
+1. **Primary sources**: Regulatory documents, standards, official specifications
+2. **Secondary sources**: Academic research, industry reports, technical documentation
+3. **Tertiary sources**: News articles, blog posts (use sparingly, verify with primary/secondary sources)
 
-### Test-Driven Development (TDD)
-You must religiously follow TDD (Test-Driven Development) process:
-1. Write failing test first
-2. Write minimal code to pass
-3. Refactor while keeping tests green
+### Cross-Referencing
+Maintain internal consistency:
+- Reference findings from other tasks within the sprint
+- Link related research files
+- Build upon previously established facts
 
-### Testing Requirements
-You must create both unit tests and integration tests.
+## Quality Standards
 
-### Type Safety
-You must do the code as strongly-typed as possible, and even more, so we can find errors **before** we run code in production.
+### Dual-Audience Writing
+All reports must serve both:
+1. **Business Executives**: Clear value propositions, ROI, strategic implications
+2. **Technical Decision-Makers**: Technical feasibility, architecture details, implementation requirements
 
-### Linting
-You **must** extensively and exhaustively run applicable linters every time before sending code to github.
+### Document Structure
+Every research file must include:
+- **Executive Summary**: 2-3 paragraphs summarizing key findings
+- **Key Findings**: Bulleted list of main discoveries
+- **Supporting Evidence**: Detailed analysis with citations
+- **References**: Full citation list
 
-### Code Review
-You must review the changes made with a separate subtask.
+### File Organization
+- Minimum 25 research files per sprint (configurable in `config/project-config.yml`)
+- Each file should be focused and self-contained (500-5000 words)
+- Use clear, descriptive filenames
+- Organize files by task (01-technical, 02-market, 03-architecture, etc.)
 
 ## Git Workflow
 
-### Git Flow
-You **must** use git flow for all git/github-related actions (if applicable).
-
 ### No Pull Requests
-No Pull Requests - I am solo here.
+This is a solo research workflow - commit directly to main branch.
 
-### Commit and Push
-You **must** commit and push code every time when you are done with any engineering task.
+### Commit Frequently
+Commit research files as they are completed:
+```bash
+git add temp/sprint-XX/
+git commit -m "Sprint XX, Task YY: [brief description of research completed]"
+git push
+```
 
-### Releases
-You **must** do git release after each significant feature or piece is implemented.
+### Sprint Milestones
+Create a git tag/release after completing each sprint:
+```bash
+git tag -a sprint-XX-complete -m "Sprint XX: [Sprint Name] - Complete"
+git push --tags
+```
 
-## Database Management
+## Configuration Management
 
-### Schema Preservation
-If the database is in place with correct schema, you **must NOT** touch that schema again. Do not run migrations or alter existing tables unless explicitly requested.
+### Project Configuration
+All project settings are in `config/` directory:
+- **project-config.yml**: Project metadata, research parameters
+- **sprint-config.yml**: Sprint definitions and task breakdown
+- **quality-standards.yml**: Evidence requirements, quality thresholds
+- **scoring-rubric.yml**: Opportunity scoring criteria
+- **glossary.yml**: Industry-specific terminology
 
-### Data Preservation
-If the data is already in the database, you **must NOT** modify, delete, or re-insert it unless explicitly requested. Do not run seed scripts, data population scripts, or any operations that would alter existing data. Always verify what data exists before attempting any data operations.
+### Environment Variables
+Sensitive data goes in `.env` (never commit):
+- API keys (ANTHROPIC_API_KEY, etc.)
+- Credentials for external services
+- Runtime configuration overrides
 
-### Database Connection Information
-The project uses PostgreSQL with the following connection details:
-- **Host**: localhost
-- **Port**: 5434
-- **Database**: oilfield
-- **User**: oilfield
-- **Password**: oilfield_dev
-- **Connection URL**: postgresql://oilfield:oilfield_dev@localhost:5434/oilfield
+### Context Files
+Project-specific context in `context/` directory:
+- **company-profile.md**: Your company's capabilities, goals, constraints
+- **client-info.md**: Client background, requirements, preferences
+- **industry-background.md**: Industry-specific knowledge and context
 
-Configuration files:
-- Root: `.env` (active configuration)
-- Backend: `backend/.env` (uses port 5432)
-- Examples: `.env.example` and `backend/.env.example`
+## Skills and Commands
+
+### Skills (Model-Invoked Agents)
+Claude Code will automatically invoke skills based on task requirements:
+- **sprint-orchestrator**: Coordinates multi-task sprint execution
+- **technical-researcher**: Investigates regulatory, technical, standards
+- **market-analyst**: Analyzes TAM/SAM/SOM, competitors, customers
+- **solution-architect**: Designs system architecture and components
+- **compliance-analyst**: Researches certification pathways and testing
+- **roadmap-planner**: Creates implementation roadmaps and timelines
+- **report-synthesizer**: Synthesizes final reports with scoring
+
+### Commands (User-Invoked)
+Execute commands via Claude Code CLI:
+- `/init-project`: Initialize new research project
+- `/create-sprint <name>`: Create new sprint directory structure
+- `/execute-sprint <id>`: Execute all tasks in a sprint
+- `/execute-task <sprint-id> <task-id>`: Execute single task
+- `/synthesize-report <sprint-id>`: Create final sprint report
+- `/score-opportunity <sprint-id>`: Score opportunity using rubric
+- `/validate-quality <sprint-id>`: Run quality assurance checks
+
+## Automation Principles
+
+### Autonomous Operation
+Skills operate autonomously within their domain:
+- Skills make research decisions without asking for permission
+- Skills parallelize research where beneficial
+- Skills create comprehensive research files (not summaries)
+
+### Human Checkpoints
+Stop for human input only for:
+- Strategic decisions (which opportunities to pursue)
+- Go/No-Go recommendations requiring business judgment
+- Ambiguous requirements or conflicting information
+- Budget or timeline constraints
+
+### Error Handling
+If a skill encounters an issue:
+1. Document the issue clearly
+2. Attempt alternative approaches (different sources, search strategies)
+3. If unresolvable, flag in research notes and continue
+4. Never leave placeholders or "TODO" markers
+
+## Output Standards
+
+### Research Files
+- Write in markdown format
+- Include metadata header (title, date, author skill, sprint/task)
+- Use clear section headings
+- Include inline citations [Author, Year]
+- Add full reference list at end
+
+### Final Reports
+- Professional formatting suitable for stakeholder presentations
+- Executive summary (1-2 pages)
+- Detailed findings (10-30 pages depending on complexity)
+- Appendices for supporting data
+- Export in multiple formats (markdown, PDF, DOCX)
+
+### Deliverables
+Each sprint produces:
+- Research files in `temp/sprint-XX/`
+- Final report in `reports/sprint-XX-final-report.md`
+- Opportunity score (0-100) with breakdown
+- Go/No-Go recommendation with justification
