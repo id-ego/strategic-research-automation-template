@@ -18,7 +18,11 @@ if [ ! -d "sprints" ]; then
   exit 1
 fi
 
-mapfile -t SPRINT_DIRS < <(find sprints -maxdepth 1 -type d -name "[0-9]*" 2>/dev/null | sort)
+# Bash 3.2 compatible alternative to mapfile
+SPRINT_DIRS=()
+while IFS= read -r line; do
+  SPRINT_DIRS+=("$line")
+done < <(find sprints -maxdepth 1 -type d -name "[0-9]*" 2>/dev/null | sort)
 
 if [ ${#SPRINT_DIRS[@]} -eq 0 ]; then
   echo "✗ No sprint directories found"

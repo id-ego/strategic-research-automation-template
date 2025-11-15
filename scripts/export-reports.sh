@@ -33,7 +33,11 @@ if [ ! -d "reports" ]; then
   exit 1
 fi
 
-mapfile -t REPORTS < <(find reports -name "*-report.md" 2>/dev/null | sort)
+# Bash 3.2 compatible alternative to mapfile
+REPORTS=()
+while IFS= read -r line; do
+  REPORTS+=("$line")
+done < <(find reports -name "*-report.md" 2>/dev/null | sort)
 
 if [ ${#REPORTS[@]} -eq 0 ]; then
   echo "✗ No reports found in reports/ directory"

@@ -7,14 +7,8 @@ set -e
 # Use CLAUDE_CMD environment variable or default to 'claude'
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
 
-PROJECT_NAME="$1"
-INDUSTRY="$2"
-COMPANY_NAME="$3"
-shift 3
-
-SPRINT_DEFS=("$@")
-
-if [ -z "$PROJECT_NAME" ] || [ -z "$INDUSTRY" ] || [ -z "$COMPANY_NAME" ] || [ ${#SPRINT_DEFS[@]} -eq 0 ]; then
+# Validate arguments before shift
+if [ $# -lt 4 ]; then
   echo "Usage: $0 \"Project Name\" \"Industry\" \"Company Name\" \"sprint1|description1\" [\"sprint2|desc2\" ...]"
   echo ""
   echo "Example:"
@@ -23,6 +17,13 @@ if [ -z "$PROJECT_NAME" ] || [ -z "$INDUSTRY" ] || [ -z "$COMPANY_NAME" ] || [ $
   echo "    \"Collision Avoidance|Verified collision avoidance system\""
   exit 1
 fi
+
+PROJECT_NAME="$1"
+INDUSTRY="$2"
+COMPANY_NAME="$3"
+shift 3
+
+SPRINT_DEFS=("$@")
 
 echo "╔═══════════════════════════════════════════════════════════════╗"
 echo "║  Strategic Research Automation Pipeline                      ║"

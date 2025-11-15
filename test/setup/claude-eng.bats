@@ -46,8 +46,8 @@ EOF
 # Category 3: Error Condition Tests
 
 @test "claude-eng fails when system prompt file not found" {
-  # Point to non-existent prompt file
-  run scripts/setup/claude-eng -p "test" 2>&1
+  # Point to directory where prompt file doesn't exist
+  SCRIPT_DIR="$TEST_TEMP_DIR/nonexistent" run scripts/setup/claude-eng -p "test"
   [[ "$output" =~ "System prompt file not found" ]] || \
   [[ "$output" =~ "No such file or directory" ]]
 }
