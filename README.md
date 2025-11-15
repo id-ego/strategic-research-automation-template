@@ -1,7 +1,7 @@
 # Strategic Research Automation Template
 
 [![GitHub Template](https://img.shields.io/badge/template-Use%20this%20template-brightgreen)](https://github.com/o2alexanderfedin/strategic-research-automation-template/generate)
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![AI Hive](https://img.shields.io/badge/AI_Hive-v2.0+-purple.svg)](https://o2.services)
 [![Setup Time](https://img.shields.io/badge/setup-2%20minutes-green)]()

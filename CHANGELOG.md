@@ -11,11 +11,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- Complete documentation suite (in progress)
 - Advanced export formats (HTML, interactive reports)
 - Multi-language support for reports
 - Web UI for non-technical users
 - Integration with external data sources (APIs, databases)
+
+---
+
+## [3.0.0] - 2025-11-14
+
+### BREAKING CHANGES
+
+- **YOLO-Only Mode by Default** - Template now uses fully autonomous execution mode
+  - All scripts default to `./scripts/setup/claude-eng` instead of `claude`
+  - Zero permission prompts - uninterrupted execution from start to finish
+  - Users can override with `CLAUDE_CMD=claude` environment variable if needed
+
+**Migration Impact**: Existing users expecting interactive mode will now get fully autonomous execution. Set `export CLAUDE_CMD="claude"` to restore interactive behavior.
+
+### Changed
+
+- **Philosophy Shift**: From interactive to fully autonomous research automation
+  - All 6 automation scripts converted to YOLO mode default
+  - All 7 documentation files updated with YOLO mode examples
+  - README.md emphasizes "completely hands-free automation"
+  - TEMPLATE_STRATEGY.md updated with YOLO-only philosophy
+
+- **Documentation Updates**:
+  - README.md: Added YOLO-only philosophy and "Why YOLO-only?" section
+  - QUICK_START.md: All 30+ examples converted to claude-eng
+  - Command reference tables updated with YOLO mode syntax
+  - Setup guides updated for autonomous operation
+
+### Added
+
+- Comprehensive YOLO mode documentation across all guides
+- Security considerations for autonomous operation
+- Migration path documentation for existing users
+
+### Tested
+
+- All 247 tests pass (100% success rate)
+  - Comprehensive Testing Suite: 190/190 ✓
+  - BATS Integration Tests: 30/30 ✓
+  - BATS Setup Tests: 20/20 ✓
+  - Documentation Tests: 7/7 ✓
 
 ---
 
