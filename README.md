@@ -1,14 +1,16 @@
 # Strategic Research Automation Template
 
-**Transform strategic opportunity analysis from weeks to hours**
-
-Automate comprehensive research using AI-powered skills, parallel execution, and proven map-reduce methodology. Generate publication-quality strategic reports with evidence-based recommendations.
-
+[![GitHub Template](https://img.shields.io/badge/template-Use%20this%20template-brightgreen)](https://github.com/o2alexanderfedin/strategic-research-automation-template/generate)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-v2.0+-purple.svg)](https://docs.claude.com)
+[![Setup Time](https://img.shields.io/badge/setup-2%20minutes-green)]()
 
-[Quick Start](#quick-start) •  [Documentation](#documentation) • [Examples](#examples) • [Contributing](#contributing)
+> **Transform strategic opportunity analysis from weeks to hours**
+
+Automate comprehensive research using AI-powered skills, parallel execution, and proven map-reduce methodology. Generate publication-quality strategic reports with evidence-based recommendations.
+
+[Quick Start](#quick-start) • [Template Usage](QUICK_START.md) • [Documentation](#documentation) • [Examples](#examples) • [Contributing](#contributing)
 
 ---
 
@@ -99,76 +101,81 @@ Fully autonomous mode: from context files to complete portfolio in one command.
 
 ## Quick Start
 
-### 1. Prerequisites
+Choose your installation method:
 
-Ensure you have:
-- [Claude Code CLI](https://docs.claude.com) installed
-- Git configured
-- Active Claude API access
+### Method 1: GitHub Template (Recommended)
 
-**Verify installation**:
-```bash
-claude --version    # Should show v2.0 or higher
-git --version       # Any recent version
-```
+**Perfect for**: New research projects (2 minutes)
 
-### 2. Create Project from Template
+1. Click **"Use this template"** button above
+2. Clone your new repository
+3. Run setup:
+   ```bash
+   ./scripts/setup-template.sh
+   ```
+4. Answer 5-6 questions about your project
+5. Start researching!
 
-```bash
-# Use this GitHub template
-# Click "Use this template" button on GitHub
-# Or clone directly:
-git clone https://github.com/o2alexanderfedin/strategic-research-automation-template my-project
-cd my-project
-```
+**Ready to research in 2 minutes** ⚡
 
-### 3. Configure Context
+### Method 2: Existing Project
 
-Edit context files with your information:
+**Perfect for**: Adding research automation to existing consulting/research projects
 
 ```bash
-# Company capabilities and expertise
-vim context/company-profile.md
-
-# Client domain and pain points
-vim context/client-info.md
-
-# Industry-specific background (optional)
-vim context/industry-background.md
+cd your-consulting-project
+curl -sSL https://raw.githubusercontent.com/o2alexanderfedin/strategic-research-automation-template/main/scripts/setup-existing.sh -o setup.sh
+chmod +x setup.sh && ./setup.sh
 ```
 
-**Tip**: High-quality context files = high-quality research outputs
+Your existing project + strategic research automation!
 
-### 4. Discover Opportunities
+### Method 3: Cookiecutter (Power Users)
 
-Let AI identify strategic fit areas:
+**Perfect for**: Full customization, teams, multiple projects
 
 ```bash
-claude -p "/discover-opportunities"
-# Reviews context, identifies 5-10 opportunities
-# Auto-generates sprint definitions
+pip install cookiecutter
+cookiecutter gh:o2alexanderfedin/strategic-research-automation-template
 ```
 
-### 5. Execute First Sprint
+**Need help?** See [QUICK_START.md](QUICK_START.md) for detailed setup guides.
 
-```bash
-claude -p "/execute-sprint 01"
-# Runs all 6 tasks in parallel (~45 minutes)
-# Generates 25-38 research files + strategic report
-```
+---
+
+### First Research Sprint (After Setup)
+
+1. **Discover Opportunities** (5 minutes):
+   ```bash
+   claude -p "/discover-opportunities"
+   # AI identifies 5-10 strategic fit areas
+   ```
+
+2. **Execute Sprint** (45 minutes):
+   ```bash
+   claude -p "/execute-sprint 01"
+   # Generates 25+ research files + 10-page report
+   ```
+
+3. **Export Deliverable** (2 minutes):
+   ```bash
+   claude -p "/export-findings 01 pdf"
+   # Professional PDF ready for stakeholders
+   ```
+
+**Total time**: ~1 hour from setup to deliverable 🚀
 
 **Expected output**:
 ```
-✓ Sprint 01 initialized: eVTOL Flight Control Verification
-✓ Task 01 completed: 32 files (DO-178C analysis, FAA regulations, SMT verification)
-✓ Task 02 completed: 27 files (TAM $12B, SAM $450M, SOM $45M-$85M)
-✓ Task 03 completed: 29 files (system architecture, verification framework)
-✓ Task 04 completed: 25 files (certification pathways, testing strategy)
-✓ Task 05 completed: 28 files (3-year roadmap, partnership strategy)
-✓ Task 06 completed: Strategic report (6,847 words, score 95/100 - STRONG GO)
+✓ Sprint initialized: eVTOL Flight Control Verification
+✓ Task 01: 32 research files (DO-178C analysis, FAA regulations)
+✓ Task 02: 27 files (TAM $12B, SAM $450M, SOM $45M-$85M)
+✓ Task 03: 29 files (system architecture, verification framework)
+✓ Task 04: 25 files (certification pathways, testing strategy)
+✓ Task 05: 28 files (3-year roadmap, partnership strategy)
+✓ Task 06: Strategic report (6,847 words, score 95/100 - STRONG GO)
+✓ PDF exported: reports/01-evtol-flight-control.pdf
 ```
-
-**Next**: Review `reports/01-sprint-name-report.md` for go/no-go recommendation.
 
 ---
 
