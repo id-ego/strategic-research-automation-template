@@ -142,6 +142,8 @@ Choose your installation method:
 
 **Ready to research in 2 minutes** ⚡
 
+> **For repository owners**: If the "Use this template" button is not visible, see [GITHUB_TEMPLATE_SETUP.md](GITHUB_TEMPLATE_SETUP.md) for quick CLI setup to enable template repository.
+
 ### Method 2: Existing Project
 
 **Perfect for**: Adding research automation to existing consulting/research projects
