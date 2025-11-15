@@ -355,4 +355,4 @@ Questions? [Open an issue](https://github.com/o2alexanderfedin/strategic-researc
 
 ---
 
-**Note**: This framework requires AI Hive® v2.0+ and an active O2.services API key.
+**Note**: This framework requires Claude Code v2.0+ and an active Anthropic API key.
