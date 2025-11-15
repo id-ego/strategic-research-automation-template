@@ -264,13 +264,13 @@ main() {
         if [ -f "$file" ]; then
             temp_file="${file}.tmp"
             sed \
-                -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-                -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-                -e "s/{{CLIENT_NAME}}/$CLIENT_NAME/g" \
-                -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
-                -e "s/{{RESEARCH_FOCUS}}/$RESEARCH_FOCUS/g" \
-                -e "s/{{OUTPUT_FORMAT}}/$OUTPUT_FORMAT/g" \
-                -e "s/{{DETAIL_LEVEL}}/$DETAIL_LEVEL/g" \
+                -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
+                -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
+                -e "s|{{CLIENT_NAME}}|$CLIENT_NAME|g" \
+                -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
+                -e "s|{{RESEARCH_FOCUS}}|$RESEARCH_FOCUS|g" \
+                -e "s|{{OUTPUT_FORMAT}}|$OUTPUT_FORMAT|g" \
+                -e "s|{{DETAIL_LEVEL}}|$DETAIL_LEVEL|g" \
                 "$file" > "$temp_file"
             mv "$temp_file" "$file"
         fi
@@ -285,8 +285,8 @@ main() {
 
     if [ -f "context/company-profile.md.example" ]; then
         sed \
-            -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
             context/company-profile.md.example > context/company-profile.md
         print_success "Created context/company-profile.md"
     elif [ ! -f "context/company-profile.md" ]; then
@@ -332,8 +332,8 @@ EOF
 
     if [ -f "context/client-info.md.example" ]; then
         sed \
-            -e "s/{{CLIENT_NAME}}/$CLIENT_NAME/g" \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+            -e "s|{{CLIENT_NAME}}|$CLIENT_NAME|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
             context/client-info.md.example > context/client-info.md
         print_success "Created context/client-info.md"
     elif [ ! -f "context/client-info.md" ]; then
@@ -371,7 +371,7 @@ EOF
 
     if [ -f "context/industry-background.md.example" ]; then
         sed \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
             context/industry-background.md.example > context/industry-background.md
         print_success "Created context/industry-background.md"
     elif [ ! -f "context/industry-background.md" ]; then
@@ -409,9 +409,9 @@ EOF
         print_info "Customizing CLAUDE.md..."
         temp_file="CLAUDE.md.tmp"
         sed \
-            -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-            -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+            -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
             "CLAUDE.md" > "$temp_file"
         mv "$temp_file" "CLAUDE.md"
         print_success "CLAUDE.md customized"
