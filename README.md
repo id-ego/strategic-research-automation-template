@@ -355,4 +355,4 @@ Questions? [Open an issue](https://github.com/o2alexanderfedin/strategic-researc
 
 ---
 
-**Note**: This framework requires Claude Code v2.0+ and an active Anthropic API key.
+**Note**: This framework requires Claude Code v2.0+ with either an active Anthropic API key or a Claude subscription (more cost-effective for regular use).
