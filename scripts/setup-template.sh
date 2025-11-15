@@ -57,6 +57,12 @@ validate_not_empty() {
     echo "$input"
 }
 
+# Function to escape special characters for sed replacement
+# Escapes: & (means "matched text"), / (alternative delimiter), and \ (escape char)
+escape_for_sed() {
+    echo "$1" | sed 's/[&/\]/\\&/g'
+}
+
 # Function to detect project mode
 detect_mode() {
     if [ -d ".git" ] && [ -f "README.md" ] && [ ! -f "TEMPLATE_STRATEGY.md" ]; then
@@ -260,17 +266,26 @@ main() {
     # Replace placeholders in config files
     print_info "Customizing configuration files..."
 
+    # Escape special characters in variables for sed
+    PROJECT_NAME_ESC=$(escape_for_sed "$PROJECT_NAME")
+    COMPANY_NAME_ESC=$(escape_for_sed "$COMPANY_NAME")
+    CLIENT_NAME_ESC=$(escape_for_sed "$CLIENT_NAME")
+    INDUSTRY_ESC=$(escape_for_sed "$INDUSTRY")
+    RESEARCH_FOCUS_ESC=$(escape_for_sed "$RESEARCH_FOCUS")
+    OUTPUT_FORMAT_ESC=$(escape_for_sed "$OUTPUT_FORMAT")
+    DETAIL_LEVEL_ESC=$(escape_for_sed "$DETAIL_LEVEL")
+
     find config -type f \( -name "*.yml" -o -name "*.yaml" \) 2>/dev/null | while IFS= read -r file; do
         if [ -f "$file" ]; then
             temp_file="${file}.tmp"
             sed \
-                -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
-                -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
-                -e "s|{{CLIENT_NAME}}|$CLIENT_NAME|g" \
-                -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
-                -e "s|{{RESEARCH_FOCUS}}|$RESEARCH_FOCUS|g" \
-                -e "s|{{OUTPUT_FORMAT}}|$OUTPUT_FORMAT|g" \
-                -e "s|{{DETAIL_LEVEL}}|$DETAIL_LEVEL|g" \
+                -e "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" \
+                -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+                -e "s|{{CLIENT_NAME}}|$CLIENT_NAME_ESC|g" \
+                -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
+                -e "s|{{RESEARCH_FOCUS}}|$RESEARCH_FOCUS_ESC|g" \
+                -e "s|{{OUTPUT_FORMAT}}|$OUTPUT_FORMAT_ESC|g" \
+                -e "s|{{DETAIL_LEVEL}}|$DETAIL_LEVEL_ESC|g" \
                 "$file" > "$temp_file"
             mv "$temp_file" "$file"
         fi
@@ -285,8 +300,8 @@ main() {
 
     if [ -f "context/company-profile.md.example" ]; then
         sed \
-            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
-            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
             context/company-profile.md.example > context/company-profile.md
         print_success "Created context/company-profile.md"
     elif [ ! -f "context/company-profile.md" ]; then
@@ -332,8 +347,8 @@ EOF
 
     if [ -f "context/client-info.md.example" ]; then
         sed \
-            -e "s|{{CLIENT_NAME}}|$CLIENT_NAME|g" \
-            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
+            -e "s|{{CLIENT_NAME}}|$CLIENT_NAME_ESC|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
             context/client-info.md.example > context/client-info.md
         print_success "Created context/client-info.md"
     elif [ ! -f "context/client-info.md" ]; then
@@ -371,7 +386,7 @@ EOF
 
     if [ -f "context/industry-background.md.example" ]; then
         sed \
-            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
             context/industry-background.md.example > context/industry-background.md
         print_success "Created context/industry-background.md"
     elif [ ! -f "context/industry-background.md" ]; then
@@ -409,9 +424,9 @@ EOF
         print_info "Customizing CLAUDE.md..."
         temp_file="CLAUDE.md.tmp"
         sed \
-            -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
-            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME|g" \
-            -e "s|{{INDUSTRY}}|$INDUSTRY|g" \
+            -e "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
             "CLAUDE.md" > "$temp_file"
         mv "$temp_file" "CLAUDE.md"
         print_success "CLAUDE.md customized"

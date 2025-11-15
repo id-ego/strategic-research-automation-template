@@ -13,6 +13,12 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
+# Function to escape special characters for sed replacement
+# Escapes: & (means "matched text"), / (alternative delimiter), and \ (escape char)
+escape_for_sed() {
+    echo "$1" | sed 's/[&/\]/\\&/g'
+}
+
 echo -e "${GREEN}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║   Strategic Research Automation - Existing Project    ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════╝${NC}"
@@ -229,15 +235,22 @@ CONFIG_FILES=(
     "glossary.yml"
 )
 
+# Escape special characters in variables for sed
+PROJECT_NAME_ESC=$(escape_for_sed "$PROJECT_NAME")
+COMPANY_NAME_ESC=$(escape_for_sed "$COMPANY_NAME")
+CLIENT_NAME_ESC=$(escape_for_sed "$CLIENT_NAME")
+INDUSTRY_ESC=$(escape_for_sed "$INDUSTRY")
+RESEARCH_FOCUS_ESC=$(escape_for_sed "$RESEARCH_FOCUS")
+
 for config in "${CONFIG_FILES[@]}"; do
     if curl -sSL "$TEMPLATE_URL/config/$config" -o "$TMP_DIR/$config" 2>/dev/null; then
         # Replace placeholders
         sed \
-            -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-            -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-            -e "s/{{CLIENT_NAME}}/$CLIENT_NAME/g" \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
-            -e "s/{{RESEARCH_FOCUS}}/$RESEARCH_FOCUS/g" \
+            -e "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+            -e "s|{{CLIENT_NAME}}|$CLIENT_NAME_ESC|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
+            -e "s|{{RESEARCH_FOCUS}}|$RESEARCH_FOCUS_ESC|g" \
             "$TMP_DIR/$config" > "config/$config"
         echo -e "${GREEN}✓ Downloaded config: $config${NC}"
     else
@@ -386,9 +399,9 @@ if [ -f "CLAUDE.md" ]; then
         mv CLAUDE.md CLAUDE.md.backup
         if curl -sSL "$TEMPLATE_URL/CLAUDE.md" -o CLAUDE.md 2>/dev/null; then
             sed -i.bak \
-                -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-                -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-                -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+                -e "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" \
+                -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+                -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
                 CLAUDE.md && rm CLAUDE.md.bak
             echo -e "${GREEN}✓ CLAUDE.md created (original backed up to CLAUDE.md.backup)${NC}"
         fi
@@ -398,9 +411,9 @@ if [ -f "CLAUDE.md" ]; then
 else
     if curl -sSL "$TEMPLATE_URL/CLAUDE.md" -o CLAUDE.md 2>/dev/null; then
         sed -i.bak \
-            -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-            -e "s/{{COMPANY_NAME}}/$COMPANY_NAME/g" \
-            -e "s/{{INDUSTRY}}/$INDUSTRY/g" \
+            -e "s|{{PROJECT_NAME}}|$PROJECT_NAME_ESC|g" \
+            -e "s|{{COMPANY_NAME}}|$COMPANY_NAME_ESC|g" \
+            -e "s|{{INDUSTRY}}|$INDUSTRY_ESC|g" \
             CLAUDE.md && rm CLAUDE.md.bak
         echo -e "${GREEN}✓ Created CLAUDE.md${NC}"
     fi
