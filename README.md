@@ -1,7 +1,7 @@
 # Strategic Research Automation Template
 
 [![GitHub Template](https://img.shields.io/badge/template-Use%20this%20template-brightgreen)](https://github.com/o2alexanderfedin/strategic-research-automation-template/generate)
-[![Version](https://img.shields.io/badge/version-3.5.4-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.6.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Setup Time](https://img.shields.io/badge/setup-5%20minutes-green)]()
 [![Quick Start](https://img.shields.io/badge/quick%20start-2%20commands-brightgreen)](#-start-here-for-first-time-users)
@@ -109,6 +109,7 @@ For power users who want more control:
 /export-findings          # Export to PDF/DOCX/HTML
 /validate-quality         # Check quality standards
 /update-context           # Modify project context
+/publish-pages            # Generate GitHub Pages site
 /finalize-release         # Create git release
 ```
 
@@ -157,6 +158,28 @@ For fully autonomous operation without permission prompts, use the `claude-eng` 
 - Multi-format exports (MD, PDF, DOCX)
 - Complete audit trail with citations
 - Git-tracked version history
+
+### Professional Publishing
+
+Generate beautiful landing pages for your research automatically:
+
+```bash
+# Generate GitHub Pages site
+./scripts/publish/generate-pages.sh
+
+# Or use the slash command
+/publish-pages
+```
+
+**Example**: https://o2alexanderfedin.github.io/innova-technology-proposals/
+
+Creates a professional, mobile-responsive site with:
+- Overview statistics (sprints, TAM, scores, research files)
+- Cards for each opportunity with recommendations
+- Links to HTML/PDF/Markdown versions of reports
+- Automatic deployment via GitHub Actions
+
+See [GitHub Pages Publishing Guide](docs/GITHUB-PAGES.md) for setup and customization.
 
 ---
 
@@ -358,6 +381,7 @@ See [Customization Guide](docs/CUSTOMIZATION.md) for step-by-step instructions.
 - [Customization Guide](docs/CUSTOMIZATION.md) - Adapt to your industry
 - [Architecture Deep-Dive](docs/ARCHITECTURE.md) - System design
 - [Automation Scripts](docs/reference/scripts.md) - Bash automation
+- [GitHub Pages Publishing](docs/GITHUB-PAGES.md) - Publish professional landing pages
 
 ### Support
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions

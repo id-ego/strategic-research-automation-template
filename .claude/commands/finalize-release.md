@@ -88,7 +88,22 @@ git push origin master --tags
 git push origin develop
 ```
 
-### Step 9: Create GitHub Release (Optional)
+### Step 9: Generate GitHub Pages
+
+Generate professional landing page for research results:
+```bash
+./scripts/publish/generate-pages.sh
+git add docs/pages/
+git commit -m "Add GitHub Pages landing page for $1"
+git push origin main
+```
+
+This creates a beautiful landing page at `https://<username>.github.io/<repo>/` with:
+- Overview statistics (sprint count, research files, total TAM, average score)
+- Cards for each sprint with scores and recommendations
+- Links to HTML/PDF/Markdown versions of reports
+
+### Step 10: Create GitHub Release (Optional)
 
 If gh CLI available:
 ```bash
@@ -98,7 +113,7 @@ gh release create $1 \
   --target master
 ```
 
-### Step 10: Output Release Confirmation
+### Step 11: Output Release Confirmation
 
 Display release summary with version, tag, and release notes location.
 
@@ -109,6 +124,7 @@ Display release summary with version, tag, and release notes location.
 - CHANGELOG updated
 - Git release created with tag
 - Repositories pushed (master + develop)
+- GitHub Pages landing page generated
 - GitHub release created (if available)
 
 ## Error Handling

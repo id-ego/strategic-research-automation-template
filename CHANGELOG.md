@@ -11,10 +11,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- Advanced export formats (HTML, interactive reports)
 - Multi-language support for reports
 - Web UI for non-technical users
 - Integration with external data sources (APIs, databases)
+- Custom themes for GitHub Pages
+
+---
+
+## [3.6.0] - 2025-11-16
+
+### Added
+
+- **GitHub Pages Publishing** - Automatically generate professional landing pages for research results
+  - New script: `scripts/publish/generate-pages.sh` generates mobile-responsive HTML
+  - New slash command: `/publish-pages` for easy publishing
+  - New workflow: `.github/workflows/publish-pages.yml` for automated deployment
+  - Integration with `/finalize-release` command (auto-generates on release)
+  - Professional purple gradient theme with hover animations
+  - Overview statistics: sprint count, research files, total TAM, average scores
+  - Sprint cards with scores, recommendations, and multi-format report links (HTML/PDF/MD)
+  - Example: https://o2alexanderfedin.github.io/innova-technology-proposals/
+  - Complete documentation in `docs/GITHUB-PAGES.md`
+
+### Changed
+
+- **Release workflow** - `/finalize-release` now includes GitHub Pages generation
+- **README** - Added "Professional Publishing" section with GitHub Pages info
+- **Command count** - Now 14 commands (added `/publish-pages`)
+
+### Technical Details
+
+- HTML generator uses CSS Grid for responsive layout
+- Automatic metadata extraction from sprint reports (title, score, TAM, description)
+- Supports multiple output directories for multi-project sites
+- Calculates aggregate statistics (total TAM, average scores)
+- Professional styling with system font stack and gradient backgrounds
+- GitHub Actions workflow with configurable triggers (manual, push to main, reports changes)
 
 ---
 
