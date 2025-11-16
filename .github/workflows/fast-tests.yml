@@ -39,8 +39,11 @@ jobs:
 
       - name: Run BATS integration tests
         run: |
-          # Run BATS tests with explicit file listing to avoid globbing issues
-          bats test/setup/*.bats test/quality/*.bats
+          # Debug: show what files will be tested
+          echo "BATS test files:"
+          ls -la test/setup/*.bats test/quality/*.bats
+          echo "Running BATS tests..."
+          bats test/setup/*.bats test/quality/*.bats || exit 1
 
       - name: Run documentation tests
         run: |
