@@ -18,6 +18,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.2] - 2025-11-16
+
+### Added
+
+- **Automatic GitHub Pages Publishing** - `run-full.sh` now commits and pushes pages automatically
+  - Generates landing page after sprints complete
+  - Commits to git with automated message
+  - Pushes to GitHub automatically
+  - Copies reports to `docs/pages/reports/` for web access
+  - Displays live URL after publishing
+  - Graceful handling of git errors
+  - First-time setup instructions included
+
+### Changed
+
+- **Complete automation**: Questions → Research → Reports → **Live Published Site**
+- **README Quick Start**: Updated step 5 to "publishes it automatically"
+- **Output description**: Changed to "live published landing page"
+- Users get their research online with **zero manual steps**
+
+### User Experience
+
+After `run-full.sh` completes:
+```
+Publishing to GitHub Pages...
+✓ Changes committed
+✓ Published to GitHub Pages!
+
+Your research is now live at:
+  → https://<username>.github.io/<repo>/pages/
+
+Note: First-time publishing may take 2-3 minutes to deploy
+Enable in: GitHub repo Settings → Pages → Source: main, /docs
+```
+
+---
+
 ## [3.6.1] - 2025-11-16
 
 ### Changed

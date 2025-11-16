@@ -1,7 +1,7 @@
 # Strategic Research Automation Template
 
 [![GitHub Template](https://img.shields.io/badge/template-Use%20this%20template-brightgreen)](https://github.com/o2alexanderfedin/strategic-research-automation-template/generate)
-[![Version](https://img.shields.io/badge/version-3.6.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.6.2-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Setup Time](https://img.shields.io/badge/setup-5%20minutes-green)]()
 [![Quick Start](https://img.shields.io/badge/quick%20start-2%20commands-brightgreen)](#-start-here-for-first-time-users)
@@ -32,13 +32,13 @@ cd strategic-research-automation-template
 2. Discovers strategic opportunities automatically
 3. Executes ALL research sprints completely hands-free (no more prompts!)
 4. Generates professional reports with scoring and PDFs
-5. Creates a beautiful landing page automatically (GitHub Pages ready!)
+5. Creates a beautiful landing page and publishes it automatically!
 
 **Requirements**: Claude subscription (desktop app or API) - that's it!
 
 **Cost**: ~$50-$200 in API usage (one-time for this research)
 **Time**: 2-6 hours completely unattended after initial questions
-**Output**: 3-10 strategic reports with scoring, PDFs, 25+ research files each, and a professional landing page
+**Output**: 3-10 strategic reports with scoring, PDFs, 25+ research files each, and a live published landing page
 
 [Advanced Usage](#documentation) • [Customization](#customization) • [Examples](#examples)
 

@@ -420,7 +420,67 @@ if [ -f "./scripts/publish/generate-pages.sh" ]; then
         echo -e "${GREEN}✓ GitHub Pages generated successfully${NC}" | tee -a "$LOG_FILE"
         echo "" | tee -a "$LOG_FILE"
         echo -e "${CYAN}Landing page created at: docs/pages/index.html${NC}" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}To publish: Enable GitHub Pages in repo settings (Settings → Pages)${NC}" | tee -a "$LOG_FILE"
+
+        # Commit and push to publish
+        echo "" | tee -a "$LOG_FILE"
+        echo -e "${YELLOW}Publishing to GitHub Pages...${NC}" | tee -a "$LOG_FILE"
+
+        # Check if we're in a git repository
+        if git rev-parse --git-dir > /dev/null 2>&1; then
+            # Add the generated pages
+            git add docs/pages/ >> "$LOG_FILE" 2>&1
+
+            # Also add reports to pages/reports directory
+            if [ -d "reports" ]; then
+                mkdir -p docs/pages/reports
+                find reports -name "sprint-*-final-report.*" -type f -exec cp {} docs/pages/reports/ \; 2>> "$LOG_FILE"
+                git add docs/pages/reports/ >> "$LOG_FILE" 2>&1
+            fi
+
+            # Commit with timestamp
+            TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+            if git commit -m "docs: Update GitHub Pages - $TIMESTAMP
+
+- Automated research results publication
+- Generated from run-full.sh
+- Sprints completed: $SPRINT_COUNT
+- Reports: $(find reports -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+🤖 Generated with Strategic Research Automation" >> "$LOG_FILE" 2>&1; then
+
+                echo -e "${GREEN}✓ Changes committed${NC}" | tee -a "$LOG_FILE"
+
+                # Push to remote
+                CURRENT_BRANCH=$(git branch --show-current)
+                if git push origin "$CURRENT_BRANCH" >> "$LOG_FILE" 2>&1; then
+                    echo -e "${GREEN}✓ Published to GitHub Pages!${NC}" | tee -a "$LOG_FILE"
+                    echo "" | tee -a "$LOG_FILE"
+
+                    # Try to get the GitHub Pages URL
+                    REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+                    if [[ "$REPO_URL" =~ github.com/([^/]+)/([^/]+) ]]; then
+                        GITHUB_USER="${BASH_REMATCH[1]}"
+                        REPO_NAME="${BASH_REMATCH[2]}"
+                        PAGES_URL="https://${GITHUB_USER}.github.io/${REPO_NAME}/pages/"
+                        echo -e "${BOLD}${CYAN}Your research is now live at:${NC}" | tee -a "$LOG_FILE"
+                        echo -e "${BOLD}${CYAN}  → $PAGES_URL${NC}" | tee -a "$LOG_FILE"
+                        echo "" | tee -a "$LOG_FILE"
+                        echo -e "${YELLOW}Note: First-time publishing may take 2-3 minutes to deploy${NC}" | tee -a "$LOG_FILE"
+                        echo -e "${YELLOW}Enable in: GitHub repo Settings → Pages → Source: main, /docs${NC}" | tee -a "$LOG_FILE"
+                    else
+                        echo -e "${CYAN}Check your GitHub Pages URL in repository settings${NC}" | tee -a "$LOG_FILE"
+                    fi
+                else
+                    echo -e "${YELLOW}⚠ Push failed - publish manually: git push origin $CURRENT_BRANCH${NC}" | tee -a "$LOG_FILE"
+                fi
+            else
+                # No changes to commit (pages already up to date)
+                echo -e "${GREEN}✓ GitHub Pages already up to date${NC}" | tee -a "$LOG_FILE"
+            fi
+        else
+            echo -e "${YELLOW}⚠ Not a git repository - pages generated but not published${NC}" | tee -a "$LOG_FILE"
+            echo -e "${YELLOW}To publish: commit docs/pages/ and push to GitHub${NC}" | tee -a "$LOG_FILE"
+        fi
     else
         echo -e "${YELLOW}⚠ GitHub Pages generation encountered issues - check log${NC}" | tee -a "$LOG_FILE"
         echo -e "${YELLOW}You can manually generate later: ./scripts/publish/generate-pages.sh${NC}" | tee -a "$LOG_FILE"
@@ -460,7 +520,7 @@ echo "  1. Review reports: ls -lh reports/" | tee -a "$LOG_FILE"
 echo "  2. Read summaries: cat reports/*-report.md" | tee -a "$LOG_FILE"
 echo "  3. View landing page: open docs/pages/index.html" | tee -a "$LOG_FILE"
 echo "  4. Share with client: reports/*.$EXPORT_FORMAT" | tee -a "$LOG_FILE"
-echo "  5. Publish online: Enable GitHub Pages in repository settings" | tee -a "$LOG_FILE"
+echo "  5. Share live site: Your GitHub Pages URL (if enabled)" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 echo -e "${GREEN}Happy researching! 🚀${NC}" | tee -a "$LOG_FILE"
 echo ""
