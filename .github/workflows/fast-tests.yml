@@ -39,7 +39,8 @@ jobs:
 
       - name: Run BATS integration tests
         run: |
-          bats test/*.bats test/setup/*.bats test/quality/*.bats
+          # Run BATS tests with explicit file listing to avoid globbing issues
+          bats test/setup/*.bats test/quality/*.bats
 
       - name: Run documentation tests
         run: |
