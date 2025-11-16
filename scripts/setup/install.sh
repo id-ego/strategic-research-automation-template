@@ -121,3 +121,59 @@ fi
 
 echo "Documentation: See scripts/setup/README.md for details"
 echo ""
+
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}  Checking Dependencies${NC}"
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+# Check for jq (required for stream-json parser)
+if command -v jq &> /dev/null; then
+    JQ_VERSION=$(jq --version 2>&1)
+    echo -e "${GREEN}✓ jq found: ${JQ_VERSION}${NC}"
+else
+    echo -e "${YELLOW}⚠ jq not found${NC}"
+    echo -e "${YELLOW}  The stream-json parser requires jq for parsing Claude CLI output.${NC}"
+    echo -e "${YELLOW}  Without jq, the system will fall back to basic text output.${NC}"
+    echo ""
+    echo -e "${CYAN}  Install jq:${NC}"
+    
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo -e "    ${CYAN}brew install jq${NC}"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo -e "    ${CYAN}sudo apt-get install jq${NC}  # Debian/Ubuntu"
+        echo -e "    ${CYAN}sudo yum install jq${NC}      # RedHat/CentOS"
+    fi
+    echo ""
+fi
+
+# Check for Claude CLI
+if command -v claude &> /dev/null; then
+    CLAUDE_VERSION=$(claude --version 2>&1 | head -1)
+    echo -e "${GREEN}✓ Claude CLI found: ${CLAUDE_VERSION}${NC}"
+else
+    echo -e "${RED}✗ Claude CLI not found${NC}"
+    echo -e "${YELLOW}  Install from: https://docs.claude.com${NC}"
+    exit 1
+fi
+
+# Check for stdbuf (for unbuffered output fallback)
+if command -v stdbuf &> /dev/null; then
+    echo -e "${GREEN}✓ stdbuf found (GNU coreutils)${NC}"
+else
+    echo -e "${YELLOW}⚠ stdbuf not found${NC}"
+    echo -e "${YELLOW}  Install GNU coreutils for unbuffered output support${NC}"
+fi
+
+echo ""
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}✅ Dependency check complete${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+if ! command -v jq &> /dev/null; then
+    echo -e "${YELLOW}Recommendation: Install jq for optimal progress visibility${NC}"
+    echo -e "${YELLOW}The system will work without it, but you'll miss the animated heartbeat${NC}"
+    echo -e "${YELLOW}and detailed tool execution visibility.${NC}"
+    echo ""
+fi

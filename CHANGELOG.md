@@ -18,6 +18,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2025-11-16
+
+### Added - Stream-JSON Parser for Animated Progress Indicators
+
+#### Game-Changing Enhancement
+Implemented **stream-json parser** that converts Claude CLI's structured event stream into human-friendly, animated progress indicators with heartbeat proving the system is alive.
+
+#### Problem Solved
+Even with unbuffered output and verbose messages, rookies still wondered "is it working?" during silent processing periods. No visual proof of activity between operations.
+
+#### Solution
+**Stream-JSON Parser** (`scripts/stream-json-parser.sh`):
+
+**1. Animated Heartbeat**
+```
+⠋ Working... 3s elapsed
+⠙ Working... 5s elapsed  ← Spins every 2 seconds
+⠹ Working... 7s elapsed  ← Visual proof system is alive
+```
+
+**2. Tool Execution Visibility**
+```
+🔧 Tool: Read
+   Input: {"file_path":"/path/to/file"}...
+📥 Tool execution complete
+```
+
+**3. Real-Time Text Streaming**
+- Word-by-word output as Claude writes
+- Thinking indicators (`💭 Thinking...`)
+- Response completion markers
+
+**4. Rich Metadata**
+```
+✅ Task Complete
+   Duration: 7s
+   Tokens: 9 in / 324 out
+   Cached: 20,808 tokens
+   Cost: $0.117
+```
+
+**5. Graceful Fallback**
+- If `jq` missing → falls back to unbuffered default output
+- If parser missing → uses traditional text display
+- Always works, just with less visual feedback
+
+#### Implementation
+
+**claude-eng wrapper** now uses:
+```bash
+claude --output-format stream-json \
+       --include-partial-messages | stream-json-parser.sh
+```
+
+**Parser features:**
+- Background heartbeat thread (spinning indicator)
+- JSON event parsing with `jq`
+- Colored, formatted output
+- Tool execution tracking
+- Duration/token/cost metrics
+
+#### Key Benefits
+
+1. **Never Looks Frozen**
+   - Heartbeat animates every 2 seconds
+   - "Working... Xs elapsed" counter increments
+   - Visual proof of continuous activity
+
+2. **Complete Transparency**
+   - See exactly which tools Claude is using
+   - Tool input preview (truncated)
+   - Real-time response streaming
+
+3. **Professional Output**
+   - Clean, colored formatting
+   - Clear visual hierarchy
+   - Emoji indicators for context
+
+4. **Dependency Management**
+   - Requires: `jq` (JSON processor)
+   - Optional: `stdbuf` (for fallback mode)
+   - Automatic fallback if dependencies missing
+
+#### Impact
+
+**Before** (unbuffered output):
+```
+[Silent periods between operations]
+[Rookies wonder: "Is it frozen?"]
+```
+
+**After** (stream-json parser):
+```
+⠋ Working... 3s elapsed
+🔧 Tool: Bash
+📥 Tool execution complete
+Here is the output...
+✅ Task Complete (7s, $0.11)
+```
+
+**Result**: Rookies have constant visual confirmation the system is working, with detailed progress at every step.
+
+---
+
 ## [3.3.1] - 2025-11-15
 
 ### Fixed - Unbuffered Output for Immediate Real-Time Visibility

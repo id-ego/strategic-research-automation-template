@@ -4,16 +4,64 @@
 
 The Strategic Research Automation Template includes comprehensive progress feedback to prevent confusion during long-running autonomous operations. This guide explains what feedback you'll see and what it means.
 
-### Unbuffered Output for Real-Time Visibility
+### Stream-JSON Parser for Maximum Visibility
 
-All automation scripts use **unbuffered output** to ensure rookies see progress immediately:
+All automation scripts now use **stream-json with intelligent parsing** to show Claude is actively working:
 
-- **`stdbuf -oL -eL`**: Forces line-buffered output (no waiting for buffer to fill)
-- **Claude output → stderr**: All Claude CLI output redirected to stderr for immediate display
-- **`tee` with stdbuf**: Log file writes don't block terminal output
-- **Flow control disabled**: Terminal settings optimized for streaming output
+#### Technical Implementation
+- **`--output-format stream-json`**: Structured event stream from Claude CLI
+- **`--include-partial-messages`**: Word-by-word text streaming
+- **Custom parser** (`scripts/stream-json-parser.sh`): Converts JSON to human-friendly output
+- **Animated heartbeat**: Spinning indicator (⠋⠙⠹⠸) proves system is alive
+- **Tool visibility**: See exactly which tools Claude is executing
 
-This means you see every line of output **the instant it's generated**, not in bursts every few seconds.
+#### What You See
+
+**Real-Time Activity Indicators:**
+```
+🚀 Claude initialized
+   Model: claude-sonnet-4-5-20250929
+   Session: b7558497...
+
+⠋ Working... 3s elapsed         ← Animated heartbeat (updates every 2s)
+💭 Thinking...                   ← Claude is processing
+🔧 Tool: Read                    ← Tool being executed
+   Input: {"file_path":"..."}
+📥 Tool execution complete       ← Tool finished
+📝 Response: [text streams here] ← Real-time text output
+✓ Response complete
+
+✅ Task Complete
+   Duration: 7s
+   Tokens: 9 in / 324 out
+   Cached: 20,808 tokens
+   Cost: $0.117
+```
+
+#### Key Benefits
+
+1. **Never Looks Frozen**
+   - Animated heartbeat spins every 2 seconds
+   - "Working... Xs elapsed" shows continuous activity
+   - Visual proof system is alive
+
+2. **Complete Transparency**
+   - See which tools Claude is using (Read, Bash, Grep, etc.)
+   - Tool input preview shows what's being executed
+   - Real-time text streaming as Claude writes
+
+3. **Rich Metadata**
+   - Exact duration (ms/s/m)
+   - Token counts (input/output/cached)
+   - Cost tracking per operation
+   - Model and session identification
+
+4. **Graceful Fallback**
+   - If `jq` unavailable: falls back to unbuffered default output
+   - If parser missing: uses traditional text output
+   - Always works, even in minimal environments
+
+This means you see **exactly what Claude is doing** at every moment, with proof it's actively working.
 
 ---
 
