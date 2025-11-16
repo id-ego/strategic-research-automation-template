@@ -313,12 +313,15 @@ for sprint_file in sprints/*.md; do
         echo -e "${YELLOW}  AI agents will research: Technical, Market, Architecture, Compliance, Roadmap, and Synthesis${NC}" | tee -a "$LOG_FILE"
         echo "" | tee -a "$LOG_FILE"
 
+        # Format sprint number with zero padding (01, 02, etc.)
+        SPRINT_NUM_PADDED=$(printf "%02d" "$SPRINT_NUM")
+
         # Run sprint with progress monitoring in background
         # Use unbuffered output for immediate visibility
         if command -v stdbuf &> /dev/null; then
-            stdbuf -oL -eL ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE" &
+            stdbuf -oL -eL ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE" &
         else
-            ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM" 2>&1 | tee -a "$LOG_FILE" &
+            ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | tee -a "$LOG_FILE" &
         fi
         SPRINT_PID=$!
 
@@ -330,8 +333,8 @@ for sprint_file in sprints/*.md; do
             MINS=$((ELAPSED / 60))
             SECS=$((ELAPSED % 60))
 
-            # Count research files created so far
-            FILE_COUNT=$(find temp/"${SPRINT_NUM}"-* -type f 2>/dev/null | wc -l | tr -d ' ')
+            # Count research files created so far (sprint directory structure: temp/sprint-XX/YY-taskname/)
+            FILE_COUNT=$(find temp/sprint-"${SPRINT_NUM_PADDED}"/ -type f 2>/dev/null | wc -l | tr -d ' ')
 
             # Show heartbeat every 10 seconds
             if [ $((DOTS % 2)) -eq 0 ]; then
@@ -352,8 +355,8 @@ for sprint_file in sprints/*.md; do
 
         if [ $SPRINT_EXIT_CODE -eq 0 ]; then
             # Count final files
-            FINAL_FILE_COUNT=$(find temp/"${SPRINT_NUM}"-* -type f 2>/dev/null | wc -l | tr -d ' ')
-            REPORT_EXISTS=$(find reports -name "${SPRINT_NUM}-*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+            FINAL_FILE_COUNT=$(find temp/sprint-"${SPRINT_NUM_PADDED}"/ -type f 2>/dev/null | wc -l | tr -d ' ')
+            REPORT_EXISTS=$(find reports -name "${SPRINT_NUM_PADDED}-*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 
             echo "" | tee -a "$LOG_FILE"
             echo -e "${GREEN}✓ Sprint $SPRINT_NUM complete in ${SPRINT_MINS}m ${SPRINT_SECS}s${NC}" | tee -a "$LOG_FILE"
