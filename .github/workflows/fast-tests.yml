@@ -22,6 +22,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bats shellcheck yamllint
 
+          # Install BATS helper libraries
+          mkdir -p test/test_helper
+          git clone https://github.com/bats-core/bats-support.git test/test_helper/bats-support
+          git clone https://github.com/bats-core/bats-assert.git test/test_helper/bats-assert
+
       - name: Run comprehensive testing suite
         run: |
           ./scripts/test/comprehensive-testing.sh
