@@ -30,7 +30,7 @@ jobs:
 
       - name: Run BATS integration tests
         run: |
-          bats test/*.bats test/setup/*.bats
+          bats test/*.bats test/setup/*.bats test/quality/*.bats
 
       - name: Run documentation tests
         run: |
