@@ -42,8 +42,11 @@ jobs:
           # Debug: show what files will be tested
           echo "BATS test files:"
           ls -la test/setup/*.bats test/quality/*.bats
+          echo "BATS version:"
+          bats --version || echo "BATS not found in PATH"
+          which bats || echo "BATS command not in which"
           echo "Running BATS tests..."
-          bats test/setup/*.bats test/quality/*.bats || exit 1
+          /usr/bin/bats test/setup/*.bats test/quality/*.bats || exit 1
 
       - name: Run documentation tests
         run: |
