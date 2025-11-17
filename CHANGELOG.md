@@ -18,6 +18,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.7] - 2025-11-17
+
+### Added
+
+- **Proper markdown table syntax enforcement**
+  - Added table formatting rules to CLAUDE.md
+  - Updated score-opportunity command with correct table examples
+  - Enforces blank lines before/after tables for proper HTML/PDF rendering
+
+### Problem Solved
+
+**Before** (incorrect - renders as text):
+```markdown
+Scoring Summary:
+| Category | Weight | Score |
+|----------|--------|-------|
+| Market   | 25%    | 93.3  |
+Next paragraph.
+```
+Result: Pipes visible as plain text in HTML/PDF exports
+
+**After** (correct - renders as table):
+```markdown
+Scoring Summary:
+
+| Category | Weight | Score |
+|----------|--------|-------|
+| Market   | 25%    | 93.3  |
+
+Next paragraph.
+```
+Result: Proper HTML table in exports
+
+**Rules Enforced**:
+1. Blank line before table
+2. Blank line after table
+3. Proper markdown syntax with pipes and dashes
+4. One row per line
+5. Aligned columns
+
+**Impact**: All tables (scoring summaries, market sizing, competitive analysis) now render as proper HTML tables in exports instead of plain text.
+
+---
+
 ## [3.8.6] - 2025-11-17
 
 ### Added
