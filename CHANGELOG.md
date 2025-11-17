@@ -18,6 +18,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.8] - 2025-11-17
+
+### Added
+
+- **Cross-links between GitHub Pages and repository**
+  - GitHub Pages landing page now includes "View Repository & Documentation" button in header
+  - Repository README includes "Example Reports" badge linking to live demo
+  - Automatic repository URL detection from git config
+  - Navigation section in README explaining bidirectional links
+
+### Navigation Flow
+
+**From Repository to Reports**:
+- Click purple "📊 Example Reports" badge at top of README
+- Opens live GitHub Pages landing page
+
+**From Reports to Repository**:
+- Click "📂 View Repository & Documentation" button in landing page header
+- Opens GitHub repository with full documentation
+
+### Impact
+
+- ✅ Easier navigation between research outputs and source code
+- ✅ Better discoverability of documentation from landing page
+- ✅ Seamless experience for stakeholders reviewing reports
+- ✅ Automatic linking (no manual configuration needed)
+
+---
+
 ## [3.8.7] - 2025-11-17
 
 ### Added
