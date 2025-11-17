@@ -57,7 +57,10 @@ jobs:
         if: steps.check-context.outputs.skip != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y jq pandoc texlive-xetex
+          sudo apt-get install -y jq pandoc texlive-xetex npm
+
+          # Install mermaid-filter for diagram rendering in PDFs
+          sudo npm install -g @mermaid-js/mermaid-cli mermaid-filter || echo "⚠️ mermaid-filter installation failed, PDFs will not render diagrams"
 
       - name: Execute research pipeline
         if: steps.check-context.outputs.skip != 'true'

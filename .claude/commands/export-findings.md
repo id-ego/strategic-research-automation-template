@@ -31,6 +31,14 @@ Use Bash tool with pandoc:
 
 For PDF:
 ```bash
+# Convert Mermaid diagrams to images before PDF generation
+pandoc reports/$1-*-report.md -o reports/$1-*-report.pdf \
+  --pdf-engine=xelatex \
+  --toc \
+  --number-sections \
+  --metadata title="Strategic Research Report: Sprint $1" \
+  --variable geometry:margin=1in \
+  --filter mermaid-filter 2>/dev/null || \
 pandoc reports/$1-*-report.md -o reports/$1-*-report.pdf \
   --pdf-engine=xelatex \
   --toc \
@@ -38,6 +46,8 @@ pandoc reports/$1-*-report.md -o reports/$1-*-report.pdf \
   --metadata title="Strategic Research Report: Sprint $1" \
   --variable geometry:margin=1in
 ```
+
+Note: If `mermaid-filter` is installed (`npm install -g mermaid-filter`), Mermaid diagrams will be rendered as images in PDF. If not available, PDF will be generated without diagram rendering (code blocks remain as text).
 
 For DOCX:
 ```bash
@@ -95,9 +105,17 @@ Install pandoc:
 For PDF export, also need LaTeX:
 - macOS: brew install basictex
 - Ubuntu: sudo apt install texlive-xetex
+
+For Mermaid diagram rendering in PDFs (optional but recommended):
+- Install Node.js/npm first
+- macOS: brew install node
+- Ubuntu: sudo apt install npm
+- Then: sudo npm install -g @mermaid-js/mermaid-cli mermaid-filter
 ```
 
 If source report missing, guide user to execute sprint or synthesize report.
+
+If mermaid-filter not available: PDFs will still be generated but Mermaid diagrams will appear as code blocks instead of rendered images.
 
 ## Expected Output
 

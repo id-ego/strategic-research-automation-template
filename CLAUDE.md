@@ -331,6 +331,13 @@ graph TD
 - Project timelines → Mermaid Gantt chart
 - Component relationships → Mermaid class or component diagram
 
+#### PDF Export with Mermaid Diagrams
+Mermaid diagrams are automatically rendered in PDF exports when `mermaid-filter` is installed:
+- Install: `npm install -g @mermaid-js/mermaid-cli mermaid-filter`
+- Diagrams convert to embedded images in PDFs
+- Without filter: Diagrams appear as code blocks (not rendered)
+- CI/CD: Filter automatically installed in GitHub Actions workflow
+
 ### Final Reports
 - Professional formatting suitable for stakeholder presentations
 - Executive summary (1-2 pages)
