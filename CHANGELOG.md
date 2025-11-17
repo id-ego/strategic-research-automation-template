@@ -19,6 +19,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ---
 
+## [3.8.1] - 2025-11-16
+
+### Added
+
+- **Text readability and formatting rules** - Comprehensive guidelines for scannable content
+  - Added "Text Formatting and Readability" section to CLAUDE.md
+  - Expanded formatting rules beyond tables to all dense text
+  - Mandates maximum 3-4 sentences per paragraph before breaking
+  - Defines when to use bullets, numbered lists, paragraphs, and <br/> tags
+  - Updated report-generator skill with text readability requirements
+
+### Problem Solved
+
+Dense paragraphs are impossible for executives to scan:
+
+**Before**: "Mega-Trend 1: Self-Driving Labs - Market Growth: $1.32B → $3.11B, 10% CAGR - Technology Maturation: Publications increased 10x - Key Drivers: DOE investment, private sector, materials science - SRS Opportunity: Verified AI critical enabler"
+(200+ words, single paragraph, unreadable)
+
+**After**: Bullet points with clear structure:
+- Market Growth: $1.32B → $3.11B, 10% CAGR
+- Technology Maturation: Publications increased 10x
+- Key Drivers: DOE investment, private sector, materials science
+(Scannable, professional, executive-friendly)
+
+### Guidelines Added
+
+**General Principles**:
+1. Break up dense paragraphs
+2. Maximum 3-4 sentences per paragraph
+3. Use visual hierarchy (headings, lists)
+4. Prioritize scannability for busy executives
+
+**When to use each format**:
+- Bullet points: 3+ distinct items, features, benefits
+- Numbered lists: Sequential steps, priorities, timelines
+- Paragraphs: Narrative flow, 1-2 sentences, cause/effect
+- <br/> tags: Table cells, headings, short related statements
+
+---
+
 ## [3.8.0] - 2025-11-16
 
 ### Added
