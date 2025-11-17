@@ -18,6 +18,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.1] - 2025-11-16
+
+### Added
+
+- **Final git flow verification** - Automated git release management at end of workflow
+  - Added final step in `run-full.sh` that runs: `"ensure with git flow: commit/push/release/merge/CI/CD"`
+  - Executes after GitHub Pages publishing and all research is complete
+  - Uses `claude-eng` wrapper to verify all work is committed, released, and merged
+  - Ensures CI/CD pipeline is passing before completion
+  - Includes fallback message if claude-eng wrapper not available
+
+### Benefits
+
+- ✅ **Complete automation** - From research to git release, fully hands-free
+- ✅ **Quality assurance** - Verifies CI/CD passes before declaring success
+- ✅ **Proper versioning** - Creates git releases automatically
+- ✅ **Main branch sync** - Ensures develop is merged to main
+- ✅ **Audit trail** - Full git history of research deliverables
+
+### Workflow
+
+```bash
+./scripts/run-full.sh
+# 1. Discover opportunities
+# 2. Execute all sprints
+# 3. Generate reports
+# 4. Export to PDF/HTML/DOCX
+# 5. Publish GitHub Pages
+# 6. Commit and push
+# 7. Create release ← NEW
+# 8. Merge to main  ← NEW
+# 9. Verify CI/CD   ← NEW
+```
+
+---
+
 ## [3.7.0] - 2025-11-16
 
 ### Added
