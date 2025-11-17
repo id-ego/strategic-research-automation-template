@@ -31,6 +31,8 @@ Design comprehensive system architecture and technical solution for strategic op
 Follow industry best practices, consider trade-offs, document decisions with rationale.
 
 ## Visualization Standards
+
+### Always Use Mermaid
 - **ALWAYS use Mermaid diagrams** for all architecture visualizations
 - **NEVER use ASCII art** diagrams (unprofessional and hard to read)
 - Use appropriate Mermaid diagram types:
@@ -39,5 +41,34 @@ Follow industry best practices, consider trade-offs, document decisions with rat
   - Data flows → `flowchart` or `sequenceDiagram`
   - State machines → `stateDiagram-v2`
   - Database schemas → `erDiagram`
+
+### Label Quoting - CRITICAL
+**ALWAYS quote all labels in Mermaid diagrams** to prevent rendering failures.
+
+**INCORRECT** (may fail):
+```mermaid
+graph TD
+    A[API Gateway] --> B[Processing Engine]
+    B --> C[Database]
+```
+
+**CORRECT** (always works):
+```mermaid
+graph TD
+    A["API Gateway"] --> B["Processing Engine"]
+    B --> C["Database"]
+    C --> D["Cache Layer"]
+```
+
+**Rules**:
+1. Always use double quotes: `A["Label"]` not `A[Label]`
+2. Quote edge labels: `-->|"Success"|` not `-->|Success|`
+3. Quote even simple labels to ensure consistency
+4. Escape internal quotes: `A["Label: \"quoted\""]`
+
+**Why**: Prevents parsing errors with special characters, spaces, reserved words, ensuring diagrams render in all viewers (GitHub, HTML, PDF).
+
+### Best Practices
 - Include diagrams in all architecture files for visual clarity
 - Mermaid renders beautifully in GitHub, VS Code, and most markdown viewers
+- Test diagram rendering in markdown preview before finalizing

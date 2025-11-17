@@ -256,17 +256,55 @@ Mega-Trend 1: Self-Driving Labs (SDL) Commercialization - Market Growth: Virtual
 - Preserving specific line structure
 
 ### Diagrams and Visualizations
+
+#### Always Use Mermaid
 - **ALWAYS use Mermaid diagrams** for all visual representations
 - **NEVER use ASCII art** for diagrams (hard to read, unprofessional)
 - Mermaid supports: flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, and more
 - Benefits: Clean, professional, scalable, maintainable, renders beautifully in markdown viewers
-- Example use cases:
-  - System architecture → Mermaid flowchart or C4 diagram
-  - Data flows → Mermaid flowchart or sequence diagram
-  - Process workflows → Mermaid flowchart or state diagram
-  - Database schemas → Mermaid ER diagram
-  - Project timelines → Mermaid Gantt chart
-  - Component relationships → Mermaid class or component diagram
+
+#### Mermaid Label Quoting - CRITICAL
+**ALWAYS quote labels** in Mermaid diagrams to prevent rendering failures.
+
+**Example - INCORRECT (may fail to render)**:
+```mermaid
+graph TD
+    A[Market Analysis] --> B[Technical Feasibility]
+    B --> C[Financial Modeling]
+    C --> D[Go/No-Go Decision]
+```
+Problem: Special characters, spaces, or reserved words can break rendering
+
+**Example - CORRECT (always works)**:
+```mermaid
+graph TD
+    A["Market Analysis"] --> B["Technical Feasibility"]
+    B --> C["Financial Modeling"]
+    C --> D["Go/No-Go Decision"]
+    D -->|"Go"| E["Implementation Roadmap"]
+    D -->|"No-Go"| F["Archive & Learn"]
+```
+
+**Quoting Rules**:
+1. **Always use double quotes** around all node labels: `A["Label"]`
+2. **Always quote edge labels**: `-->|"Label"|`
+3. **Quote even simple labels**: `A["Start"]` not `A[Start]`
+4. **Escape quotes in labels**: `A["Quote: \"text\""]`
+5. **Use quotes for all diagram types**: flowcharts, sequence, class, etc.
+
+**Why this matters**:
+- Prevents Mermaid parsing errors
+- Handles special characters (parentheses, quotes, colons, etc.)
+- Avoids reserved word conflicts
+- Ensures diagrams render in all viewers (GitHub, HTML, PDF)
+
+#### Common Mermaid Use Cases
+- System architecture → Mermaid flowchart or C4 diagram
+- Data flows → Mermaid flowchart or sequence diagram
+- Process workflows → Mermaid flowchart or state diagram
+- Database schemas → Mermaid ER diagram
+- Project timelines → Mermaid Gantt chart
+- Component relationships → Mermaid class or component diagram
 
 ### Final Reports
 - Professional formatting suitable for stakeholder presentations
