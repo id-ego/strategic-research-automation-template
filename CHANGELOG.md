@@ -17,6 +17,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom themes for GitHub Pages
 
 ---
+---
+
+## [3.8.0] - 2025-11-16
+
+### Added
+
+- **Table formatting enforcement** - Comprehensive rules for readable, professional tables
+  - Added table formatting section to `CLAUDE.md` with rules and examples
+  - Updated `report-generator` skill with table formatting requirements
+  - Updated `market-analyst` skill with specific table examples
+  - Mandates `<br/>` tags for line breaks within table cells
+  - Limits tables to 3-5 columns maximum for optimal readability
+
+### Problem Solved
+
+Tables with many columns wrapped badly and became unreadable. Now using `<br/>` tags and limiting columns creates professional, scannable tables.
+
+### Formatting Rules
+
+1. Always use `<br/>` for line breaks within table cells
+2. Limit tables to 3-5 columns maximum
+3. Group related data in single cells with line breaks
+4. Never rely on markdown line breaks in tables
+5. Test table rendering in markdown viewer before finalizing
+
 
 ## [3.7.2] - 2025-11-16
 
