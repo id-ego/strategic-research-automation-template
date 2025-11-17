@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.5] - 2025-11-16
+
+### Fixed
+
+- **Portable sed syntax** - Fixed GitHub Pages workflow failure in CI
+  - Detect sed version (GNU vs BSD) to use correct syntax
+  - Use `sed -i` (no backup) for GNU sed (Linux/GitHub Actions)
+  - Use `sed -i.bak` with backup removal for BSD sed (macOS)
+  - Fixes: `sed: -e expression #1, char 30: unknown option to 's'`
+
+### Technical Details
+
+**Error**: GitHub Pages workflow was failing with sed syntax error on Linux
+**Root cause**: macOS uses BSD sed, Linux uses GNU sed with different `-i` flag syntax
+**Solution**: Runtime detection with conditional sed invocation
+
+---
+
 ## [3.6.4] - 2025-11-16
 
 ### Fixed
