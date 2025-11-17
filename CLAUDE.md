@@ -163,7 +163,44 @@ If a skill encounters an issue:
 - Include inline citations [Author, Year]
 - Add full reference list at end
 
-### Table Formatting
+### Text Formatting and Readability
+
+#### General Principles
+- **Break up dense paragraphs** - Use bullet points, numbered lists, or `<br/>` tags
+- **Maximum 3-4 sentences per paragraph** before breaking or using bullets
+- **Use visual hierarchy** - Headings, subheadings, lists to guide the eye
+- **Scannable content** - Busy executives should grasp key points quickly
+
+#### Dense Text - MUST Use Lists or Line Breaks
+
+**Example - INCORRECT (too dense)**:
+```markdown
+Mega-Trend 1: Self-Driving Labs (SDL) Commercialization - Market Growth: Virtual and remote laboratories $1.32B (2024) → $3.11B (2033), 10% CAGR - Technology Maturation: Academic publications on SDL increased 10x from 2015 to 2024; cost reduction (3D printing, open-source hardware) lowering barriers - Key Drivers: DOE investment ($100M+ in autonomous experimentation initiatives), private sector (Recursion Pharmaceuticals acquired Strateos for drug discovery SDL), materials science (batteries, catalysts requiring rapid iteration) - SRS Opportunity: Verified AI is critical enabler for SDL autonomous operation—hallucination risk too high for unverified AI to run unsupervised
+```
+
+**Example - CORRECT (bullet points)**:
+```markdown
+**Mega-Trend 1: Self-Driving Labs (SDL) Commercialization**
+
+- **Market Growth**: Virtual and remote laboratories $1.32B (2024) → $3.11B (2033), 10% CAGR
+- **Technology Maturation**: Academic publications on SDL increased 10x from 2015 to 2024; cost reduction (3D printing, open-source hardware) lowering barriers
+- **Key Drivers**:
+  - DOE investment ($100M+ in autonomous experimentation initiatives)
+  - Private sector (Recursion Pharmaceuticals acquired Strateos for drug discovery SDL)
+  - Materials science (batteries, catalysts requiring rapid iteration)
+- **SRS Opportunity**: Verified AI is critical enabler for SDL autonomous operation—hallucination risk too high for unverified AI to run unsupervised
+```
+
+**OR with `<br/>` tags**:
+```markdown
+**Mega-Trend 1: Self-Driving Labs (SDL) Commercialization**<br/>
+**Market Growth**: Virtual and remote laboratories $1.32B (2024) → $3.11B (2033), 10% CAGR<br/>
+**Technology Maturation**: Academic publications increased 10x from 2015 to 2024<br/>
+**Key Drivers**: DOE investment ($100M+), private sector (Recursion acquired Strateos), materials science<br/>
+**SRS Opportunity**: Verified AI is critical enabler—hallucination risk too high for unverified AI
+```
+
+#### Table Formatting
 - **ALWAYS use `<br/>` tags for line breaks within table cells**
 - **NEVER rely on markdown line breaks in tables** (they don't render properly)
 - Keep table cell content readable with proper line breaks
@@ -191,6 +228,32 @@ If a skill encounters an issue:
 3. Limit tables to 3-5 columns for readability
 4. If data doesn't fit, use nested tables or multiple tables
 5. Always preview tables in markdown viewer to verify formatting
+
+#### Lists vs. Paragraphs - When to Use Each
+
+**Use bullet points when**:
+- Listing 3+ distinct items
+- Describing multiple features/benefits
+- Breaking down complex information
+- Presenting parallel concepts
+
+**Use numbered lists when**:
+- Steps in a process
+- Ranked/prioritized items
+- Sequential information
+- Timeline events
+
+**Use paragraphs when**:
+- Narrative flow is needed
+- Explaining cause and effect
+- Building an argument
+- Content is 1-2 sentences
+
+**Use `<br/>` tags when**:
+- Within table cells
+- Within headings that need breaks
+- Short, related statements that don't warrant full bullets
+- Preserving specific line structure
 
 ### Diagrams and Visualizations
 - **ALWAYS use Mermaid diagrams** for all visual representations
