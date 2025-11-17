@@ -462,9 +462,17 @@ fi
 total_tam_rounded=$(echo "$TOTAL_TAM" | awk '{print int($1+0.5)}')
 
 # Update the HTML with actual values
-sed -i.bak "s/id=\"total-tam\">\\$0B+/id=\"total-tam\">\$$total_tam_rounded B+/" "$OUTPUT_DIR/index.html"
-sed -i.bak "s/id=\"avg-score\">0\/100/id=\"avg-score\">$avg_score\/100/" "$OUTPUT_DIR/index.html"
-rm -f "$OUTPUT_DIR/index.html.bak"
+# Use portable sed syntax for both macOS and Linux
+if sed --version >/dev/null 2>&1; then
+    # GNU sed (Linux)
+    sed -i "s/id=\"total-tam\">\\$0B+/id=\"total-tam\">\$$total_tam_rounded B+/" "$OUTPUT_DIR/index.html"
+    sed -i "s/id=\"avg-score\">0\/100/id=\"avg-score\">$avg_score\/100/" "$OUTPUT_DIR/index.html"
+else
+    # BSD sed (macOS)
+    sed -i.bak "s/id=\"total-tam\">\\$0B+/id=\"total-tam\">\$$total_tam_rounded B+/" "$OUTPUT_DIR/index.html"
+    sed -i.bak "s/id=\"avg-score\">0\/100/id=\"avg-score\">$avg_score\/100/" "$OUTPUT_DIR/index.html"
+    rm -f "$OUTPUT_DIR/index.html.bak"
+fi
 
 # Create .nojekyll file to disable Jekyll processing on GitHub Pages
 touch "$OUTPUT_DIR/.nojekyll"
