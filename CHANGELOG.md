@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.4] - 2025-11-17
+
+### Fixed
+
+- **Removed API key requirement from CI/CD workflow**
+  - Claude Code handles authentication itself on first use
+  - No need to configure `ANTHROPIC_API_KEY` secret
+  - Simplified workflow - less configuration required
+
+### Rationale
+
+GitHub Actions workflows don't need API key secrets. Claude Code CLI manages its own authentication when run, just like local development. This eliminates unnecessary configuration complexity.
+
+---
+
 ## [3.8.3] - 2025-11-17
 
 ### Fixed
