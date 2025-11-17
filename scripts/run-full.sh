@@ -551,5 +551,27 @@ echo "  3. View landing page: open docs/pages/index.html" | tee -a "$LOG_FILE"
 echo "  4. Share with client: reports/*.$EXPORT_FORMAT" | tee -a "$LOG_FILE"
 echo "  5. Share live site: Your GitHub Pages URL (if enabled)" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
+
+# Final git flow verification
+echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
+echo -e "${BOLD}${BLUE}  FINAL GIT FLOW VERIFICATION${NC}" | tee -a "$LOG_FILE"
+echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
+echo "" | tee -a "$LOG_FILE"
+
+if [ -f "./scripts/setup/claude-eng" ]; then
+    echo -e "${CYAN}Running git flow verification with Claude Code...${NC}" | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
+
+    # Run the exact prompt for git flow verification
+    ./scripts/setup/claude-eng -p "ensure with git flow: commit/push/release/merge/CI/CD" 2>&1 | tee -a "$LOG_FILE"
+
+    echo "" | tee -a "$LOG_FILE"
+    echo -e "${GREEN}✓ Git flow verification complete${NC}" | tee -a "$LOG_FILE"
+else
+    echo -e "${YELLOW}⚠ claude-eng wrapper not found - skipping git flow verification${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}Manual verification: commit, push, create release, merge to main${NC}" | tee -a "$LOG_FILE"
+fi
+
+echo "" | tee -a "$LOG_FILE"
 echo -e "${GREEN}Happy researching! 🚀${NC}" | tee -a "$LOG_FILE"
 echo ""
