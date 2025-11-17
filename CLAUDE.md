@@ -163,6 +163,35 @@ If a skill encounters an issue:
 - Include inline citations [Author, Year]
 - Add full reference list at end
 
+### Table Formatting
+- **ALWAYS use `<br/>` tags for line breaks within table cells**
+- **NEVER rely on markdown line breaks in tables** (they don't render properly)
+- Keep table cell content readable with proper line breaks
+- Use HTML line breaks for multi-line content in cells
+
+**Example - CORRECT**:
+```markdown
+| Segment | SOM | Customer Count |
+|---------|-----|----------------|
+| Pharmaceutical R&D | $28M<br/>45% | 50-60<br/>$445K CLV |
+| Clinical Labs | $16M<br/>25% | 60-80<br/>$580K CLV |
+```
+
+**Example - INCORRECT**:
+```markdown
+| Segment | SOM | Customer Count |
+|---------|-----|----------------|
+| Pharmaceutical R&D | $28M | 45% | 50-60 | $445K | 12-24 mo | 40-50% |
+```
+(Too many columns, wrapping makes it unreadable)
+
+**Rules**:
+1. Use `<br/>` to break long cell content into multiple lines
+2. Group related data in single cells with line breaks
+3. Limit tables to 3-5 columns for readability
+4. If data doesn't fit, use nested tables or multiple tables
+5. Always preview tables in markdown viewer to verify formatting
+
 ### Diagrams and Visualizations
 - **ALWAYS use Mermaid diagrams** for all visual representations
 - **NEVER use ASCII art** for diagrams (hard to read, unprofessional)
