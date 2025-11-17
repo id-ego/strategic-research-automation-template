@@ -18,6 +18,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.4] - 2025-11-16
+
+### Fixed
+
+- **GitHub Pages directory structure** - Pages now publish to correct directory
+  - Changed OUTPUT_DIR from `docs/pages/` to `docs/` where GitHub Pages expects files
+  - Added `.nojekyll` file creation to disable Jekyll processing
+  - Fixed report link paths from `../reports/` to `reports/` (relative to docs/)
+  - Updated `run-full.sh` to track `docs/index.html` and `docs/.nojekyll` instead of `docs/pages/`
+  - Changed reports copy destination from `docs/pages/reports/` to `docs/reports/`
+
+### Technical Details
+
+**Before**: Files created in `docs/pages/index.html` (not published by GitHub Pages)
+**After**: Files created in `docs/index.html` (published to `https://<username>.github.io/<repo>/`)
+
+**Impact**: GitHub Pages will now correctly serve the landing page without manual intervention.
+
+---
+
 ## [3.6.3] - 2025-11-16
 
 ### Fixed
