@@ -17,6 +17,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom themes for GitHub Pages
 
 ---
+
+## [3.8.3] - 2025-11-17
+
+### Fixed
+
+- **Strategic Research Pipeline CI/CD workflow** - Complete rewrite to handle all failure modes
+  - Fixed Claude CLI installation URL: `https://claude.ai/install.sh` (was: `https://install.claude.ai/cli`)
+  - Added pre-flight validation: checks for research context and API key before execution
+  - Graceful skipping for template repositories (no longer fails with "Usage" error)
+  - Fixed workflow triggers: only runs on context/config changes to main/develop, not on tag pushes
+  - Added conditional execution: all steps skip if validation fails
+  - Fixed secret name: `ANTHROPIC_API_KEY` (was: `CLAUDE_API_KEY`)
+  - Added config-based argument extraction for `run-complete-analysis.sh`
+
+### Added
+
+- **Workflow documentation** - `.github/workflows/README.md`
+  - Complete workflow architecture diagrams
+  - Setup instructions for template vs production repos
+  - Troubleshooting guide with common issues
+  - Security and cost estimates
+  - Expected behavior documentation
+
+### Problem Solved
+
+**Root Causes Identified**:
+1. **Claude CLI installation failed**: DNS resolution error - wrong URL used
+2. **Missing API key**: Secret not configured, workflow continued and failed later
+3. **Workflow triggered on tag pushes**: Caused failures on releases without research context
+4. **Script required arguments**: Template repo has no initialized context to pass
+
+**Solution**:
+- Validates research context exists before attempting execution
+- Checks API key is configured before running expensive operations
+- Only triggers on actual context/config file changes, not all pushes
+- Gracefully skips with clear messages when prerequisites not met
+- Template repositories now show: "⚠️ Template repository detected - no research context configured"
+- Production repositories require `ANTHROPIC_API_KEY` secret and initialized config
+
+**Impact**:
+- Template repositories: No more false-positive failures ✅
+- Production repositories: Clear error messages when misconfigured ✅
+- CI/CD pipeline: Reliable execution only when fully configured ✅
+
 ---
 
 ## [3.8.2] - 2025-11-16

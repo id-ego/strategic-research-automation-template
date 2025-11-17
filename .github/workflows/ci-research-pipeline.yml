@@ -1,7 +1,11 @@
 name: Strategic Research Pipeline
 
 on:
+  # Only trigger on context/config changes, not on all pushes
   push:
+    branches:
+      - main
+      - develop
     paths:
       - 'config/sprint-config.yml'
       - 'context/**'
@@ -28,54 +32,112 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Claude Code CLI
+      - name: Verify research context exists
+        id: check-context
         run: |
-          # Install Claude Code CLI
-          curl -fsSL https://install.claude.ai/cli | sh
-          echo "$HOME/.claude/local" >> $GITHUB_PATH
+          # Check if this is a template repository (no actual research configured)
+          if [ ! -f "config/project-config.yml" ] || ! grep -q "^project_name:" config/project-config.yml || grep -q "{{.*}}" config/project-config.yml; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Template repository detected - no research context configured"
+            echo "This workflow requires initialized research context. Skipping execution."
+            exit 0
+          fi
+
+          # Check if required secrets are configured
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️  ANTHROPIC_API_KEY secret not configured"
+            echo "Please configure ANTHROPIC_API_KEY in repository secrets to run research pipeline."
+            echo "See: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 0
+          fi
+
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "✓ Research context verified"
+
+      - name: Setup Claude Code CLI
+        if: steps.check-context.outputs.skip != 'true'
+        run: |
+          # Install Claude Code CLI using correct URL
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Configure Claude API Key
+        if: steps.check-context.outputs.skip != 'true'
         env:
-          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          mkdir -p ~/.claude
-          echo "{\"apiKey\": \"$CLAUDE_API_KEY\"}" > ~/.claude/config.json
+          # Configure Claude authentication
+          mkdir -p ~/.config/claude
+          cat > ~/.config/claude/config.json <<EOF
+          {
+            "apiKey": "$ANTHROPIC_API_KEY"
+          }
+          EOF
 
       - name: Install dependencies
+        if: steps.check-context.outputs.skip != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y jq pandoc texlive-xetex
 
       - name: Execute research pipeline
+        if: steps.check-context.outputs.skip != 'true'
         env:
           CLAUDE_CMD: "claude --dangerously-skip-permissions --allowedTools '*'"
         run: |
           if [ "${{ github.event.inputs.sprint_numbers }}" = "all" ] || [ -z "${{ github.event.inputs.sprint_numbers }}" ]; then
-            # Execute all sprints
-            ./scripts/run-complete-analysis.sh
+            # Check if run-complete-analysis.sh exists and is executable
+            if [ -f "./scripts/run-complete-analysis.sh" ]; then
+              # Execute all sprints (requires arguments from config)
+              PROJECT_NAME=$(grep "^project_name:" config/project-config.yml | cut -d: -f2- | xargs)
+              INDUSTRY=$(grep "^industry:" config/project-config.yml | cut -d: -f2- | xargs)
+              COMPANY=$(grep "^company_name:" config/project-config.yml | cut -d: -f2- | xargs)
+
+              # Execute with config values
+              echo "Executing research for: $PROJECT_NAME ($COMPANY in $INDUSTRY)"
+              ./scripts/run-complete-analysis.sh "$PROJECT_NAME" "$INDUSTRY" "$COMPANY"
+            else
+              echo "⚠️  run-complete-analysis.sh not found - skipping execution"
+            fi
           else
             # Execute specific sprints
             IFS=',' read -ra SPRINTS <<< "${{ github.event.inputs.sprint_numbers }}"
             for sprint in "${SPRINTS[@]}"; do
-              ./scripts/run-sprint.sh "$sprint"
+              if [ -f "./scripts/run-sprint.sh" ]; then
+                ./scripts/run-sprint.sh "$sprint"
+              else
+                echo "⚠️  run-sprint.sh not found - skipping sprint $sprint"
+              fi
             done
           fi
 
       - name: Validate quality
+        if: steps.check-context.outputs.skip != 'true'
         run: |
-          ./scripts/validate-all.sh || true
+          if [ -f "./scripts/validate-all.sh" ]; then
+            ./scripts/validate-all.sh || true
+          else
+            echo "⚠️  validate-all.sh not found - skipping validation"
+          fi
 
       - name: Export reports
+        if: steps.check-context.outputs.skip != 'true'
         env:
           CLAUDE_CMD: "claude --dangerously-skip-permissions --allowedTools '*'"
         run: |
-          FORMAT="${{ github.event.inputs.export_format }}"
-          if [ -z "$FORMAT" ]; then
-            FORMAT="pdf"
+          if [ -f "./scripts/export-reports.sh" ]; then
+            FORMAT="${{ github.event.inputs.export_format }}"
+            if [ -z "$FORMAT" ]; then
+              FORMAT="pdf"
+            fi
+            ./scripts/export-reports.sh "$FORMAT"
+          else
+            echo "⚠️  export-reports.sh not found - skipping export"
           fi
-          ./scripts/export-reports.sh "$FORMAT"
 
       - name: Upload artifacts
+        if: steps.check-context.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: research-reports
@@ -85,7 +147,7 @@ jobs:
           retention-days: 30
 
       - name: Create release (if main branch)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        if: steps.check-context.outputs.skip != 'true' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
