@@ -18,6 +18,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.7.0] - 2025-11-16
+
+### Added
+
+- **Mermaid.js diagram rendering** - Automatic diagram rendering in GitHub Pages and HTML reports
+  - Integrated Mermaid.js v10 via CDN into landing page (`scripts/publish/generate-pages.sh`)
+  - Updated `/export-findings` command to inject Mermaid.js into HTML exports
+  - All Mermaid code blocks in markdown automatically render as interactive diagrams
+  - Supports: flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, pie charts, git graphs
+  - Added comprehensive documentation in `docs/GITHUB-PAGES.md`
+
+### Benefits
+
+- ✅ **No image files needed** - Diagrams defined as text in markdown
+- ✅ **Version control friendly** - Text-based diagrams tracked in git
+- ✅ **Professional graphics** - Scalable, interactive, responsive diagrams
+- ✅ **Zero configuration** - Works automatically in HTML reports
+- ✅ **Easy to maintain** - Update diagram by editing markdown code block
+
+### Technical Details
+
+**Landing Page**: Mermaid.js module imported at page load:
+```javascript
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+```
+
+**HTML Reports**: Mermaid.js injected via pandoc `--include-in-header` flag during export.
+
+**Example Usage**:
+````markdown
+```mermaid
+graph TD
+    A[Research] --> B[Analysis]
+    B --> C[Recommendations]
+```
+````
+
+Renders as interactive flowchart in browser.
+
+---
+
 ## [3.6.6] - 2025-11-16
 
 ### Fixed
