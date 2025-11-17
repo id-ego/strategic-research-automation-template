@@ -18,6 +18,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.8.6] - 2025-11-17
+
+### Added
+
+- **Mermaid diagram rendering in PDF exports**
+  - PDFs now render Mermaid diagrams as embedded images instead of code blocks
+  - Uses `mermaid-filter` for Pandoc conversion
+  - CI/CD workflow automatically installs filter
+  - Graceful fallback if filter not available (code blocks remain)
+
+### Problem Solved
+
+**Before**: Mermaid diagrams in PDFs appeared as raw code blocks
+```
+graph TB
+    A[Component] --> B[Other]
+```
+
+**After**: Diagrams render as professional images in PDFs
+
+**Installation** (for local development):
+```bash
+npm install -g @mermaid-js/mermaid-cli mermaid-filter
+```
+
+**Impact**: All architecture diagrams, flowcharts, and visualizations now render properly in PDF exports for stakeholder presentations.
+
+---
+
 ## [3.8.5] - 2025-11-17
 
 ### Added
