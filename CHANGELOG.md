@@ -18,6 +18,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.6.6] - 2025-11-16
+
+### Fixed
+
+- **GitHub Pages metadata extraction** - Improved content extraction from sprint reports
+  - **Description field**: Now properly extracts first paragraph content instead of markdown headings
+    - Changed from rigid line offset (`tail -4 | head -1`) to smart content detection
+    - Skips markdown headings (`^#`), blank lines (`^$`), and bold markers (`^\*\*`)
+    - Fixes issue where `### Opportunity Overview` heading was displayed as description
+  - **Industry field**: Now handles template placeholders in config files
+    - Removes quotes from extracted industry value
+    - Replaces `{{INDUSTRY}}` and similar Cookiecutter placeholders with default "Technology"
+    - Handles cases where `project-config.yml` wasn't initialized from template
+
+### Technical Details
+
+**Before**:
+- Description showed: `### Opportunity Overview` (markdown heading)
+- Industry showed: empty or `{{INDUSTRY}}` placeholder
+
+**After**:
+- Description shows: First actual paragraph of executive summary
+- Industry shows: Actual industry name or "Technology" fallback
+
+---
+
 ## [3.6.5] - 2025-11-16
 
 ### Fixed
