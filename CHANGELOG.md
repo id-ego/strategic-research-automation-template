@@ -19,6 +19,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ---
 
+## [3.8.2] - 2025-11-16
+
+### Added
+
+- **Mermaid label quoting requirements** - Prevents diagram rendering failures
+  - Added "Mermaid Label Quoting - CRITICAL" section to CLAUDE.md
+  - Updated solution-architect skill with label quoting rules
+  - Mandates always using double quotes for all Mermaid labels
+  - Applies to node labels, edge labels, and all diagram types
+
+### Problem Solved
+
+Mermaid diagrams fail to render when labels contain special characters, spaces, or reserved words.
+
+**Before** (broken):
+```mermaid
+graph TD
+    A[Market Analysis] --> B[Technical Feasibility]
+    D -->|Go| E[Implementation]
+```
+Fails with parsing errors when labels have parentheses, quotes, colons, or reserved words.
+
+**After** (always works):
+```mermaid
+graph TD
+    A["Market Analysis"] --> B["Technical Feasibility"]
+    D -->|"Go"| E["Implementation Roadmap"]
+```
+Renders correctly in GitHub, HTML, and PDF.
+
+### Quoting Rules
+
+1. Always use double quotes: `A["Label"]` not `A[Label]`
+2. Quote edge labels: `-->|"Label"|` not `-->|Label|`
+3. Quote even simple labels for consistency
+4. Escape internal quotes: `A["Label: \"text\""]`
+5. Apply to all diagram types (flowchart, sequence, class, etc.)
+
+### Why This Matters
+
+- Prevents Mermaid parsing errors
+- Handles special characters automatically
+- Avoids reserved word conflicts
+- Ensures diagrams render in all viewers
+- Professional, reliable visualizations
+
+---
+
 ## [3.8.1] - 2025-11-16
 
 ### Added
