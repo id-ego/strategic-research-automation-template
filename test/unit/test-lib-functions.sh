@@ -230,7 +230,8 @@ test_enable_github_pages() {
     assert_function_exists "is_github_pages_enabled"
 
     # Test URL generation
-    local url=$(get_github_pages_url "testuser" "testrepo")
+    local url
+    url=$(get_github_pages_url "testuser" "testrepo")
     assert_equals "https://testuser.github.io/testrepo/" "$url" "GitHub Pages URL generation"
 }
 
