@@ -469,28 +469,89 @@ if [ -f "./scripts/publish/generate-pages-v2.sh" ]; then
                         GITHUB_USER="${BASH_REMATCH[1]}"
                         REPO_NAME="${BASH_REMATCH[2]}"
 
-                        # Try to enable GitHub Pages automatically using gh CLI
-                        if command -v gh &> /dev/null; then
-                            echo -e "${YELLOW}Enabling GitHub Pages...${NC}" | tee -a "$LOG_FILE"
+                        # Ensure GitHub CLI is installed for Pages auto-enablement
+                        if ! command -v gh &> /dev/null; then
+                            echo -e "${YELLOW}GitHub CLI (gh) not found - installing...${NC}" | tee -a "$LOG_FILE"
 
-                            # Check if Pages is already enabled
-                            PAGES_STATUS=$(gh api "repos/$GITHUB_USER/$REPO_NAME/pages" 2>&1 || echo "not_found")
-
-                            if [[ "$PAGES_STATUS" == *"not_found"* ]] || [[ "$PAGES_STATUS" == *"404"* ]]; then
-                                # Enable GitHub Pages using the API
-                                if gh api -X POST "repos/$GITHUB_USER/$REPO_NAME/pages" \
-                                    -f "source[branch]=$CURRENT_BRANCH" \
-                                    -f "source[path]=/docs" >> "$LOG_FILE" 2>&1; then
-                                    echo -e "${GREEN}✓ GitHub Pages enabled automatically!${NC}" | tee -a "$LOG_FILE"
-                                    sleep 2  # Give API a moment to process
+                            # Detect OS and install gh CLI
+                            if [[ "$OSTYPE" == "darwin"* ]]; then
+                                # macOS - use Homebrew
+                                if command -v brew &> /dev/null; then
+                                    echo -e "${CYAN}Installing via Homebrew...${NC}" | tee -a "$LOG_FILE"
+                                    brew install gh >> "$LOG_FILE" 2>&1
                                 else
-                                    echo -e "${YELLOW}⚠ Could not enable automatically - enable manually in repo settings${NC}" | tee -a "$LOG_FILE"
+                                    echo -e "${YELLOW}⚠ Homebrew not found - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
+                                    echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
+                                fi
+                            elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                                # Linux - detect package manager
+                                if command -v apt-get &> /dev/null; then
+                                    echo -e "${CYAN}Installing via apt...${NC}" | tee -a "$LOG_FILE"
+                                    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg >> "$LOG_FILE" 2>&1
+                                    sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg >> "$LOG_FILE" 2>&1
+                                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+                                    sudo apt-get update >> "$LOG_FILE" 2>&1
+                                    sudo apt-get install gh -y >> "$LOG_FILE" 2>&1
+                                elif command -v yum &> /dev/null; then
+                                    echo -e "${CYAN}Installing via yum...${NC}" | tee -a "$LOG_FILE"
+                                    sudo yum install -y gh >> "$LOG_FILE" 2>&1
+                                elif command -v dnf &> /dev/null; then
+                                    echo -e "${CYAN}Installing via dnf...${NC}" | tee -a "$LOG_FILE"
+                                    sudo dnf install -y gh >> "$LOG_FILE" 2>&1
+                                else
+                                    echo -e "${YELLOW}⚠ Unknown package manager - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
+                                    echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
                                 fi
                             else
-                                echo -e "${GREEN}✓ GitHub Pages already enabled${NC}" | tee -a "$LOG_FILE"
+                                echo -e "${YELLOW}⚠ Unknown OS ($OSTYPE) - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
+                                echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
                             fi
-                        else
-                            echo -e "${YELLOW}Note: Install 'gh' CLI to enable Pages automatically${NC}" | tee -a "$LOG_FILE"
+
+                            # Verify installation
+                            if command -v gh &> /dev/null; then
+                                echo -e "${GREEN}✓ GitHub CLI installed successfully${NC}" | tee -a "$LOG_FILE"
+                            else
+                                echo -e "${YELLOW}⚠ GitHub CLI installation failed - Pages auto-enable skipped${NC}" | tee -a "$LOG_FILE"
+                                echo -e "${YELLOW}Enable manually: GitHub repo Settings → Pages → Source: $CURRENT_BRANCH, /docs${NC}" | tee -a "$LOG_FILE"
+                            fi
+                        fi
+
+                        # Try to enable GitHub Pages automatically using gh CLI
+                        if command -v gh &> /dev/null; then
+                            # Check if user is authenticated
+                            if ! gh auth status >> "$LOG_FILE" 2>&1; then
+                                echo -e "${YELLOW}GitHub CLI not authenticated - logging in...${NC}" | tee -a "$LOG_FILE"
+                                echo -e "${CYAN}Please follow the authentication prompts:${NC}" | tee -a "$LOG_FILE"
+
+                                if gh auth login; then
+                                    echo -e "${GREEN}✓ GitHub CLI authenticated successfully${NC}" | tee -a "$LOG_FILE"
+                                else
+                                    echo -e "${YELLOW}⚠ GitHub CLI authentication failed - Pages auto-enable skipped${NC}" | tee -a "$LOG_FILE"
+                                    echo -e "${YELLOW}Enable manually: GitHub repo Settings → Pages → Source: $CURRENT_BRANCH, /docs${NC}" | tee -a "$LOG_FILE"
+                                fi
+                            fi
+
+                            # Proceed only if authenticated
+                            if gh auth status >> "$LOG_FILE" 2>&1; then
+                                echo -e "${YELLOW}Enabling GitHub Pages...${NC}" | tee -a "$LOG_FILE"
+
+                                # Check if Pages is already enabled
+                                PAGES_STATUS=$(gh api "repos/$GITHUB_USER/$REPO_NAME/pages" 2>&1 || echo "not_found")
+
+                                if [[ "$PAGES_STATUS" == *"not_found"* ]] || [[ "$PAGES_STATUS" == *"404"* ]]; then
+                                    # Enable GitHub Pages using the API
+                                    if gh api -X POST "repos/$GITHUB_USER/$REPO_NAME/pages" \
+                                        -f "source[branch]=$CURRENT_BRANCH" \
+                                        -f "source[path]=/docs" >> "$LOG_FILE" 2>&1; then
+                                        echo -e "${GREEN}✓ GitHub Pages enabled automatically!${NC}" | tee -a "$LOG_FILE"
+                                        sleep 2  # Give API a moment to process
+                                    else
+                                        echo -e "${YELLOW}⚠ Could not enable automatically - enable manually in repo settings${NC}" | tee -a "$LOG_FILE"
+                                    fi
+                                else
+                                    echo -e "${GREEN}✓ GitHub Pages already enabled${NC}" | tee -a "$LOG_FILE"
+                                fi
+                            fi
                         fi
 
                         echo "" | tee -a "$LOG_FILE"
