@@ -334,7 +334,7 @@ run_export_phase() {
 # ============================================================================
 
 deploy_to_github_pages() {
-    print_section "Step 7: Generate GitHub Pages Landing Page"
+    print_section "Step 7: Generate & Deploy GitHub Pages"
 
     if [ ! -f "./scripts/publish/generate-pages-v2.sh" ]; then
         print_warning "GitHub Pages generator not found - skipping"
@@ -350,13 +350,176 @@ deploy_to_github_pages() {
         print_info "Sprint data created at: docs/sprints-data.json"
         print_info ".nojekyll file created at: docs/.nojekyll"
 
-        # Git operations
-        commit_and_push_to_github
+        # Git operations - commit and push
+        if ! commit_and_push_to_github; then
+            print_warning "Failed to commit/push GitHub Pages"
+            return 1
+        fi
+
+        # Enable GitHub Pages if not already enabled
+        enable_github_pages_for_repo
+
+        # Trigger workflow dispatch to deploy immediately
+        trigger_pages_workflow
+
+        # Wait for deployment and verify URLs
+        verify_pages_deployment
+
     else
         print_warning "GitHub Pages generation encountered issues - check log"
         print_info "You can manually generate later: ./scripts/publish/generate-pages-v2.sh"
         return 1
     fi
+}
+
+#
+# Enable GitHub Pages for the current repository
+#
+enable_github_pages_for_repo() {
+    print_progress "Enabling GitHub Pages..."
+
+    # Source the library
+    if [ ! -f "./scripts/lib/enable-github-pages.sh" ]; then
+        print_warning "enable-github-pages.sh not found - skipping"
+        return 1
+    fi
+
+    # shellcheck source=scripts/lib/enable-github-pages.sh
+    source "./scripts/lib/enable-github-pages.sh"
+
+    # Extract repo info from git remote
+    local remote_url
+    remote_url=$(git config --get remote.origin.url 2>/dev/null || echo "")
+
+    if [ -z "$remote_url" ]; then
+        print_warning "No git remote found - cannot enable GitHub Pages"
+        return 1
+    fi
+
+    # Parse GitHub username and repo name
+    local github_user repo_name
+    if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/.]+)(\.git)?$ ]]; then
+        github_user="${BASH_REMATCH[1]}"
+        repo_name="${BASH_REMATCH[2]}"
+    else
+        print_warning "Could not parse GitHub remote URL: $remote_url"
+        return 1
+    fi
+
+    # Get current branch
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+
+    print_info "Repository: $github_user/$repo_name"
+    print_info "Branch: $current_branch"
+
+    # Enable GitHub Pages
+    if enable_github_pages "$github_user" "$repo_name" "$current_branch" "/docs"; then
+        print_success "GitHub Pages enabled successfully"
+
+        # Store URL for later verification
+        GITHUB_PAGES_URL=$(get_github_pages_url "$github_user" "$repo_name")
+        print_info "GitHub Pages URL: $GITHUB_PAGES_URL"
+        return 0
+    else
+        print_warning "Could not enable GitHub Pages automatically"
+        print_info "Enable manually: https://github.com/$github_user/$repo_name/settings/pages"
+        print_info "  Source: Deploy from a branch"
+        print_info "  Branch: $current_branch"
+        print_info "  Folder: /docs"
+        return 1
+    fi
+}
+
+#
+# Trigger GitHub Actions workflow to deploy pages
+#
+trigger_pages_workflow() {
+    print_progress "Triggering GitHub Pages workflow..."
+
+    # Check if gh CLI is available
+    if ! command -v gh &> /dev/null; then
+        print_warning "GitHub CLI (gh) not installed - cannot trigger workflow"
+        print_info "Workflow will trigger automatically on next push to main"
+        return 1
+    fi
+
+    if ! gh auth status &> /dev/null 2>&1; then
+        print_warning "GitHub CLI not authenticated - cannot trigger workflow"
+        print_info "Workflow will trigger automatically on next push to main"
+        return 1
+    fi
+
+    # Trigger workflow dispatch
+    if gh workflow run "publish-pages.yml" >> "$LOG_FILE" 2>&1; then
+        print_success "GitHub Pages workflow triggered"
+        print_info "Deployment will complete in 30-60 seconds"
+        return 0
+    else
+        print_warning "Could not trigger workflow - it will run on next push"
+        return 1
+    fi
+}
+
+#
+# Wait for GitHub Pages deployment and verify URLs
+#
+verify_pages_deployment() {
+    print_progress "Verifying GitHub Pages deployment..."
+
+    if [ -z "$GITHUB_PAGES_URL" ]; then
+        print_warning "GitHub Pages URL not set - skipping verification"
+        return 1
+    fi
+
+    print_info "Waiting for deployment to complete (max 120 seconds)..."
+
+    local max_wait=120
+    local waited=0
+    local check_interval=10
+
+    while [ $waited -lt $max_wait ]; do
+        sleep $check_interval
+        waited=$((waited + check_interval))
+
+        # Check if the main page is accessible
+        if command -v curl &> /dev/null; then
+            local http_code
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" "$GITHUB_PAGES_URL" 2>/dev/null || echo "000")
+
+            if [ "$http_code" = "200" ]; then
+                print_success "GitHub Pages is live!"
+                echo ""
+                print_info "URLs available:"
+                print_info "  Landing page: $GITHUB_PAGES_URL"
+                print_info "  Sprint data:  ${GITHUB_PAGES_URL}sprints-data.json"
+
+                # List report URLs
+                if [ -d "reports" ]; then
+                    local report_count
+                    report_count=$(find reports -maxdepth 1 -name "*.md" -type f | wc -l | tr -d ' ')
+                    if [ "$report_count" -gt 0 ]; then
+                        print_info "  Reports ($report_count): ${GITHUB_PAGES_URL}reports/"
+                    fi
+                fi
+
+                echo ""
+                PAGES_VERIFIED=true
+                return 0
+            fi
+        else
+            print_warning "curl not available - cannot verify deployment"
+            break
+        fi
+
+        print_progress "Still waiting... ($waited/${max_wait}s)"
+    done
+
+    print_warning "Could not verify GitHub Pages deployment within $max_wait seconds"
+    print_info "The site may still be deploying. Check manually:"
+    print_info "  $GITHUB_PAGES_URL"
+    PAGES_VERIFIED=false
+    return 1
 }
 
 commit_and_push_to_github() {
@@ -467,6 +630,7 @@ main() {
 
     # Deploy to GitHub Pages (track success)
     PAGES_DEPLOYED=false
+    PAGES_VERIFIED=false
     if deploy_to_github_pages; then
         PAGES_DEPLOYED=true
     fi
@@ -479,7 +643,21 @@ main() {
     # Report detailed status
     print_table_row "Sprints Completed" "${SUCCESSFUL_SPRINTS:-0} / ${sprint_num_total:-0}"
     print_table_row "Sprints Failed" "${FAILED_SPRINTS:-0}"
-    print_table_row "GitHub Pages" "$( [ "$PAGES_DEPLOYED" = true ] && echo "✓ Deployed" || echo "✗ Failed (check $LOG_FILE)" )"
+    print_table_row "GitHub Pages Generated" "$( [ "$PAGES_DEPLOYED" = true ] && echo "✓ Yes" || echo "✗ Failed (check $LOG_FILE)" )"
+    print_table_row "GitHub Pages Live" "$( [ "$PAGES_VERIFIED" = true ] && echo "✓ Verified" || echo "⚠ Not verified (may still be deploying)" )"
+
+    # Show URL if available
+    if [ -n "$GITHUB_PAGES_URL" ]; then
+        echo ""
+        print_table_row "Landing Page URL" "$GITHUB_PAGES_URL"
+        if [ -d "reports" ]; then
+            local report_count
+            report_count=$(find reports -maxdepth 1 -name "*.md" -type f | wc -l | tr -d ' ')
+            if [ "$report_count" -gt 0 ]; then
+                print_table_row "Reports URL" "${GITHUB_PAGES_URL}reports/ ($report_count files)"
+            fi
+        fi
+    fi
     echo ""
 
     if [ "${FAILED_SPRINTS:-0}" -gt 0 ] || [ "$PAGES_DEPLOYED" = false ]; then

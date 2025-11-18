@@ -5,9 +5,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'reports/sprint-*-final-report.md'
+      - 'reports/**/*.md'
+      - 'reports/**/*.pdf'
       - 'docs/index.html'
-      - 'docs/reports/**'
+      - 'docs/sprints-data.json'
+      - 'docs/**'
 
 permissions:
   contents: read
@@ -28,19 +30,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate landing page
+      - name: Generate landing page (v2 architecture)
         run: |
-          chmod +x scripts/publish/generate-pages.sh
-          ./scripts/publish/generate-pages.sh
+          chmod +x scripts/publish/generate-pages-v2.sh
+          ./scripts/publish/generate-pages-v2.sh
 
-      - name: Copy reports to docs directory
+          echo "✓ V2 landing page generated"
+          echo "  - Static HTML: docs/index.html"
+          echo "  - Sprint data: docs/sprints-data.json"
+          echo "  - Jekyll disabled: docs/.nojekyll"
+
+      - name: Copy all reports to docs directory
         run: |
           mkdir -p docs/reports
-          # Copy all final reports in various formats
-          find reports -name "sprint-*-final-report.*" -type f -exec cp {} docs/reports/ \; || true
 
-          echo "✓ Copied reports to docs directory"
-          ls -lh docs/reports/ || echo "No reports found"
+          # Copy all markdown reports (any naming pattern)
+          if [ -d "reports" ] && [ "$(find reports -maxdepth 1 -name '*.md' -type f | wc -l)" -gt 0 ]; then
+            cp reports/*.md docs/reports/ 2>/dev/null || true
+            echo "✓ Copied markdown reports"
+          fi
+
+          # Copy all PDF reports
+          if [ -d "reports" ] && [ "$(find reports -maxdepth 1 -name '*.pdf' -type f | wc -l)" -gt 0 ]; then
+            cp reports/*.pdf docs/reports/ 2>/dev/null || true
+            echo "✓ Copied PDF reports"
+          fi
+
+          # Copy all DOCX reports
+          if [ -d "reports" ] && [ "$(find reports -maxdepth 1 -name '*.docx' -type f | wc -l)" -gt 0 ]; then
+            cp reports/*.docx docs/reports/ 2>/dev/null || true
+            echo "✓ Copied DOCX reports"
+          fi
+
+          echo ""
+          echo "Reports in docs directory:"
+          ls -lh docs/reports/ | tail -n +2 || echo "⚠ No reports found"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

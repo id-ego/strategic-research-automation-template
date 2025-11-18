@@ -40,7 +40,8 @@ INDUSTRY=$(echo "$INDUSTRY" | sed 's/{{.*}}/Technology/g')
 REPO_URL=$(git config --get remote.origin.url 2>/dev/null | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|' || echo "")
 
 # Count sprints and research files
-SPRINT_COUNT=$(find "$REPORTS_DIR" -maxdepth 1 -name "sprint-*-final-report.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+# Accept any .md file in reports/ directory (not just sprint-*-final-report.md)
+SPRINT_COUNT=$(find "$REPORTS_DIR" -maxdepth 1 -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 RESEARCH_FILE_COUNT=$(find "$PROJECT_ROOT/temp" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 
 # Calculate total TAM and average score
@@ -71,9 +72,11 @@ cat >> "$JSON_FILE" << 'EOF'
   "sprints": [
 EOF
 
-# Process each sprint report
+# Process each sprint report (any naming pattern)
 FIRST_SPRINT=true
-for report in "$REPORTS_DIR"/sprint-*-final-report.md; do
+sprint_counter=0
+
+for report in "$REPORTS_DIR"/*.md; do
     if [[ ! -f "$report" ]]; then
         continue
     fi
@@ -85,9 +88,23 @@ for report in "$REPORTS_DIR"/sprint-*-final-report.md; do
         echo "," >> "$JSON_FILE"
     fi
 
-    # Extract sprint number and name from filename
+    # Increment counter for each report
+    sprint_counter=$((sprint_counter + 1))
+
+    # Extract sprint number from filename if present
     filename=$(basename "$report")
-    sprint_num=$(echo "$filename" | grep -o 'sprint-[0-9]*' | grep -o '[0-9]*')
+
+    # Try to extract sprint number from various patterns:
+    # 1. sprint-XX-final-report.md → XX
+    # 2. XX-descriptive-name.md → XX
+    # 3. Otherwise use counter
+    if [[ "$filename" =~ ^sprint-([0-9]+) ]]; then
+        sprint_num="${BASH_REMATCH[1]}"
+    elif [[ "$filename" =~ ^([0-9]+)- ]]; then
+        sprint_num="${BASH_REMATCH[1]}"
+    else
+        sprint_num="$sprint_counter"
+    fi
     sprint_num_padded=$(printf "%02d" "$sprint_num")
 
     # Read the report to extract metadata
