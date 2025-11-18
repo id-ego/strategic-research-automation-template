@@ -76,7 +76,7 @@ Introduced **v2 GitHub Pages architecture** with separation of data and presenta
   - Rollback instructions
   - Migration checklist
 
-### Changed
+### Changed - Command Updates
 
 - **Updated `/.claude/commands/publish-pages.md`** slash command
   - Documents both v1 (legacy) and v2 (recommended) architectures
@@ -109,14 +109,15 @@ Introduced **v2 GitHub Pages architecture** with separation of data and presenta
 
 **Migration**: V1 remains fully supported. V2 is opt-in, not breaking.
 
-### Backward Compatibility
+### Compatibility
 
 ✅ **100% Backward Compatible**
+
 - V1 (`generate-pages.sh`) continues to work unchanged
 - All existing workflows, CI/CD, and scripts work as before
 - V2 is additive, not a replacement
 
-### Testing
+### V2 Testing
 
 ```bash
 # Test v1 (legacy)
@@ -128,7 +129,8 @@ Introduced **v2 GitHub Pages architecture** with separation of data and presenta
 # ✓ ALL 31 TESTS PASSED - V2 Architecture Status: READY FOR PRODUCTION
 ```
 
-### Documentation
+
+### V2 Documentation
 
 - Added `docs/MIGRATION-V2.md` - Complete migration guide
 - Updated `.claude/commands/publish-pages.md` - Dual architecture documentation
@@ -213,7 +215,7 @@ Based on real-world usage, fixed 4 critical bugs that prevented proper GitHub Pa
   - Model pricing documentation in README with usage examples
   - Verbose mode displays selected model for transparency
 
-### Changed
+### Changed - Scripts
 
 - **Updated `scripts/publish/generate-pages.sh`**:
   - Idempotent regex patterns for stats updates (Lines 498-516)
@@ -230,15 +232,17 @@ Based on real-world usage, fixed 4 critical bugs that prevented proper GitHub Pa
   - Added `CLAUDE_CMD` variable (Line 9)
   - Replaced 4 hardcoded paths with `$CLAUDE_CMD`
 
-### Testing
+### Integration Testing
 
 All fixes validated by comprehensive integration test:
+
 ```bash
 bash test/integration/test-generate-pages.sh
 # ✓ ALL TESTS PASSED - GitHub Pages generator is production-ready!
 ```
 
-### Documentation
+
+### Release Documentation
 
 - Added detailed bug analysis based on real-world usage
 - Updated README with model selection guidelines
@@ -260,7 +264,7 @@ This version was superseded by v3.9.0 which includes critical bug fixes from pro
 
 ## [3.8.8] - 2025-11-17
 
-### Added
+### Added - Navigation
 
 - **Cross-links between GitHub Pages and repository**
   - GitHub Pages landing page now includes "View Repository & Documentation" button in header
@@ -271,10 +275,12 @@ This version was superseded by v3.9.0 which includes critical bug fixes from pro
 ### Navigation Flow
 
 **From Repository to Reports**:
+
 - Click purple "📊 Example Reports" badge at top of README
 - Opens live GitHub Pages landing page
 
 **From Reports to Repository**:
+
 - Click "📂 View Repository & Documentation" button in landing page header
 - Opens GitHub repository with full documentation
 
@@ -289,7 +295,7 @@ This version was superseded by v3.9.0 which includes critical bug fixes from pro
 
 ## [3.8.7] - 2025-11-17
 
-### Added
+### Added - Table Formatting
 
 - **Proper markdown table syntax enforcement**
   - Added table formatting rules to CLAUDE.md
@@ -299,6 +305,7 @@ This version was superseded by v3.9.0 which includes critical bug fixes from pro
 ### Problem Solved
 
 **Before** (incorrect - renders as text):
+
 ```markdown
 Scoring Summary:
 | Category | Weight | Score |
@@ -306,9 +313,11 @@ Scoring Summary:
 | Market   | 25%    | 93.3  |
 Next paragraph.
 ```
+
 Result: Pipes visible as plain text in HTML/PDF exports
 
 **After** (correct - renders as table):
+
 ```markdown
 Scoring Summary:
 

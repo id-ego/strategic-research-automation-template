@@ -1,234 +1,182 @@
 #!/usr/bin/env bash
-# Fully Automated Strategic Research - One Command, Zero Interruptions
-# Asks questions upfront, then runs completely autonomous until finished
+#
+# Fully Automated Strategic Research - One Command, Zero Interruptions (v2)
+# Refactored with SOLID principles - clean, modular, testable
+#
+# Usage: ./scripts/run-full-v2.sh
 
 set -e
 
-# Use CLAUDE_CMD environment variable or default to YOLO mode (claude-eng)
-CLAUDE_CMD="${CLAUDE_CMD:-./scripts/setup/claude-eng}"
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Disable output buffering for immediate visibility
-# This ensures rookies see output as it happens, not in bursts
+# Load libraries (Dependency Inversion Principle)
+source "$SCRIPT_DIR/lib/ui-helpers.sh"
+source "$SCRIPT_DIR/lib/context-generator.sh"
+source "$SCRIPT_DIR/lib/ensure-github-cli.sh"
+source "$SCRIPT_DIR/lib/enable-github-pages.sh"
+
+# Configuration
+CLAUDE_CMD="${CLAUDE_CMD:-./scripts/setup/claude-eng}"
 export PYTHONUNBUFFERED=1
 export PERL_UNICODE=SDA
+stty -ixon 2>/dev/null || true
 
-# Force immediate output flushing (disable stdout buffering)
-stty -ixon 2>/dev/null || true  # Disable flow control if terminal available
+# ============================================================================
+# User Input Phase
+# ============================================================================
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+collect_user_input() {
+    print_header "Fully Automated Strategic Research - One Command"
 
-# Print header
-echo ""
-echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║   Fully Automated Strategic Research - One Command        ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
-echo ""
-echo -e "${CYAN}This will:${NC}"
-echo "  1. Gather information about your company and client"
-echo "  2. Discover strategic opportunities automatically"
-echo "  3. Execute ALL research sprints completely hands-free"
-echo "  4. Generate final reports and exports"
-echo ""
-echo -e "${YELLOW}Time estimate: 2-6 hours (runs unattended)${NC}"
-echo -e "${YELLOW}Cost estimate: \$50-\$200 in API usage${NC}"
-echo ""
-read -r -p "Ready to begin? (y/n): " CONFIRM
-if [ "$CONFIRM" != "y" ]; then
-    echo -e "${RED}Cancelled.${NC}"
-    exit 0
-fi
+    echo -e "${CYAN}This will:${NC}"
+    print_list_item "Gather information about your company and client"
+    print_list_item "Discover strategic opportunities automatically"
+    print_list_item "Execute ALL research sprints completely hands-free"
+    print_list_item "Generate final reports and exports"
+    echo ""
+    echo -e "${YELLOW}Time estimate: 2-6 hours (runs unattended)${NC}"
+    echo -e "${YELLOW}Cost estimate: \$50-\$200 in API usage${NC}"
+    echo ""
 
-echo ""
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}${BLUE}  STEP 1: Information Gathering${NC}"
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo ""
+    if ! ask_yes_no "Ready to begin?"; then
+        echo -e "${RED}Cancelled.${NC}"
+        exit 0
+    fi
 
-# Question 1: Your company
-echo -e "${CYAN}${BOLD}Question 1: About Your Company${NC}"
-echo ""
-echo "Tell me about your company. Include:"
-echo "  - Company name"
-echo "  - What you do / services you offer"
-echo "  - Website or LinkedIn URL (if you have one)"
-echo ""
-echo "Example: 'Hupyy - We do AI consulting and development. https://linkedin.com/company/hupyy'"
-echo ""
-read -r -p "Your company info: " COMPANY_INFO
+    print_section "STEP 1: Information Gathering"
 
-echo ""
-echo -e "${CYAN}${BOLD}Question 2: About Your Client${NC}"
-echo ""
-echo "Tell me about the client. Include:"
-echo "  - Client company name"
-echo "  - Their website or LinkedIn URL"
-echo "  - Any other info you have about them"
-echo ""
-echo "Example: 'Innova Technology - https://innova-technology.com/ - They do enterprise software'"
-echo ""
-read -r -p "Client info: " CLIENT_INFO
+    # Company information
+    echo -e "${CYAN}${BOLD}Question 1: About Your Company${NC}"
+    echo ""
+    echo "Tell me about your company. Include:"
+    print_list_item "Company name"
+    print_list_item "What you do / services you offer"
+    print_list_item "Website or LinkedIn URL (if you have one)"
+    echo ""
+    echo "Example: 'Hupyy - We do AI consulting and development. https://linkedin.com/company/hupyy'"
+    echo ""
+    read -r -p "Your company info: " COMPANY_INFO
 
-echo ""
-echo -e "${CYAN}${BOLD}Question 3: Additional Context (Optional)${NC}"
-echo ""
-echo "Anything else you want me to know? Industry focus, specific problems, constraints, etc."
-echo "Press Enter to skip if nothing to add."
-echo ""
-read -r -p "Additional context: " ADDITIONAL_CONTEXT
+    # Client information
+    echo ""
+    echo -e "${CYAN}${BOLD}Question 2: About Your Client${NC}"
+    echo ""
+    echo "Tell me about the client. Include:"
+    print_list_item "Client company name"
+    print_list_item "Their website or LinkedIn URL"
+    print_list_item "Any other info you have about them"
+    echo ""
+    echo "Example: 'Innova Technology - https://innova-technology.com/ - They do enterprise software'"
+    echo ""
+    read -r -p "Client info: " CLIENT_INFO
 
-echo ""
-echo -e "${CYAN}Number of Opportunities:${NC}"
-echo "How many strategic opportunities should we explore?"
-echo "  1-3   = Quick analysis (1-2 hours, \$30-\$60)"
-echo "  4-6   = Comprehensive (3-4 hours, \$100-\$150)"
-echo "  7-10  = Exhaustive (5-6 hours, \$200+)"
-read -r -p "Number of opportunities [default: 3]: " NUM_OPPORTUNITIES
-NUM_OPPORTUNITIES=${NUM_OPPORTUNITIES:-3}
+    # Additional context
+    echo ""
+    echo -e "${CYAN}${BOLD}Question 3: Additional Context (Optional)${NC}"
+    echo ""
+    echo "Anything else you want me to know? Industry focus, specific problems, constraints, etc."
+    echo "Press Enter to skip if nothing to add."
+    echo ""
+    read -r -p "Additional context: " ADDITIONAL_CONTEXT
 
-echo ""
-echo -e "${CYAN}Export Format:${NC}"
-read -r -p "Export format (markdown/pdf/docx/all) [default: pdf]: " EXPORT_FORMAT
-EXPORT_FORMAT=${EXPORT_FORMAT:-pdf}
+    # Number of opportunities
+    echo ""
+    echo -e "${CYAN}Number of Opportunities:${NC}"
+    echo "How many strategic opportunities should we explore?"
+    echo "  1-3   = Quick analysis (1-2 hours, \$30-\$60)"
+    echo "  4-6   = Comprehensive (3-4 hours, \$100-\$150)"
+    echo "  7-10  = Exhaustive (5-6 hours, \$200+)"
+    NUM_OPPORTUNITIES=$(ask_with_default "Number of opportunities" "3")
 
-# Summary
-echo ""
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}${BLUE}  Configuration Summary${NC}"
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -e "${BOLD}Your Company:${NC} $COMPANY_INFO"
-echo -e "${BOLD}Client:${NC} $CLIENT_INFO"
-echo -e "${BOLD}Additional Context:${NC} ${ADDITIONAL_CONTEXT:-None}"
-echo -e "${BOLD}Opportunities to explore:${NC} $NUM_OPPORTUNITIES"
-echo -e "${BOLD}Export Format:${NC} $EXPORT_FORMAT"
-echo ""
-echo -e "${YELLOW}I will research both companies, figure out what you offer,"
-echo -e "identify what the client needs, and analyze opportunities.${NC}"
-echo ""
-read -r -p "Proceed with fully autonomous execution? (y/n): " FINAL_CONFIRM
-if [ "$FINAL_CONFIRM" != "y" ]; then
-    echo -e "${RED}Cancelled.${NC}"
-    exit 0
-fi
+    # Export format
+    echo ""
+    EXPORT_FORMAT=$(ask_with_default "Export format (markdown/pdf/docx/all)" "pdf")
 
-# Create context files
-echo ""
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}${BLUE}  STEP 2: Creating Context Files${NC}"
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo ""
+    # Configuration summary
+    print_section "Configuration Summary"
+    print_table_row "Your Company" "$COMPANY_INFO"
+    print_table_row "Client" "$CLIENT_INFO"
+    print_table_row "Additional Context" "${ADDITIONAL_CONTEXT:-None}"
+    print_table_row "Opportunities to explore" "$NUM_OPPORTUNITIES"
+    print_table_row "Export Format" "$EXPORT_FORMAT"
+    echo ""
+    echo -e "${YELLOW}I will research both companies, figure out what you offer,"
+    echo -e "identify what the client needs, and analyze opportunities.${NC}"
+    echo ""
 
-# Company profile - simple, let Claude research the details
-echo -e "${GREEN}→ Creating company profile...${NC}"
-cat > context/company-profile.md <<EOF
-# Company Profile
+    if ! ask_yes_no "Proceed with fully autonomous execution?"; then
+        echo -e "${RED}Cancelled.${NC}"
+        exit 0
+    fi
+}
 
-## Raw Information Provided
+# ============================================================================
+# Context Generation Phase
+# ============================================================================
 
-$COMPANY_INFO
+setup_context_files() {
+    print_section "STEP 2: Creating Context Files"
 
-## Instructions for Claude
+    print_progress "Creating company profile..."
+    generate_company_context "$COMPANY_INFO"
+    print_success "Company profile created"
 
-Research this company to understand:
-- What services/products they offer
-- Their core capabilities and expertise
-- Team size and structure (if publicly available)
-- Notable projects or clients (if publicly available)
-- Technologies and methodologies they use
-- Their competitive advantages
+    print_progress "Creating client information..."
+    generate_client_context "$CLIENT_INFO" "$ADDITIONAL_CONTEXT"
+    print_success "Client information created"
 
-Use web search to gather this information from their website, LinkedIn, or other public sources.
-EOF
+    print_progress "Creating industry background..."
+    generate_industry_context
+    print_success "Industry background created"
+}
 
-echo -e "${GREEN}✓ Company profile created${NC}"
+# ============================================================================
+# Research Execution Phase
+# ============================================================================
 
-# Client info - simple, let Claude research
-echo -e "${GREEN}→ Creating client information...${NC}"
-cat > context/client-info.md <<EOF
-# Client Information
+execute_research() {
+    print_section "STEP 3: Autonomous Research Execution"
 
-## Raw Information Provided
+    echo -e "${YELLOW}Starting fully autonomous research...${NC}"
+    echo -e "${YELLOW}This will run unattended until completion.${NC}"
+    echo -e "${YELLOW}You can safely close this window - progress is logged.${NC}"
+    echo ""
 
-$CLIENT_INFO
+    # Log file setup
+    LOG_FILE="automation-$(date +%Y%m%d-%H%M%S).log"
+    print_info "Log file: $LOG_FILE"
+    echo ""
 
-${ADDITIONAL_CONTEXT:+## Additional Context
+    START_TIME=$(date +%s)
+    echo "Started at: $(date)" | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 
-$ADDITIONAL_CONTEXT}
+    # Discovery phase
+    run_discovery_phase
 
-## Instructions for Claude
+    # Execution phase
+    run_sprint_execution_phase
 
-Research this client company to understand:
-- Their industry and market position
-- What products/services they offer
-- Their current challenges and opportunities
-- Technology stack and infrastructure (if publicly available)
-- Strategic direction and goals
-- Recent news, funding, or major initiatives
+    # Export phase
+    run_export_phase
 
-Use web search to gather comprehensive information about this company.
-EOF
+    # Calculate duration
+    END_TIME=$(date +%s)
+    DURATION=$((END_TIME - START_TIME))
+    HOURS=$((DURATION / 3600))
+    MINUTES=$(((DURATION % 3600) / 60))
 
-echo -e "${GREEN}✓ Client information created${NC}"
+    print_success "All research completed in ${HOURS}h ${MINUTES}m"
+}
 
-# Industry background - let Claude figure it out
-echo -e "${GREEN}→ Creating industry background...${NC}"
-cat > context/industry-background.md <<EOF
-# Industry Research Context
+run_discovery_phase() {
+    echo -e "${CYAN}Phase 1: Research & Opportunity Discovery${NC}" | tee -a "$LOG_FILE"
+    echo "Researching companies and finding top $NUM_OPPORTUNITIES strategic opportunities..." | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 
-## Task
-
-Based on the company and client information provided, research the relevant industry context.
-
-## Instructions for Claude
-
-1. Identify the industry/sector based on the client's business
-2. Research current market trends and dynamics
-3. Understand regulatory requirements and compliance needs
-4. Analyze competitive landscape
-5. Identify technology trends and innovations
-6. Assess market opportunities and challenges
-
-Use this research to identify strategic opportunities where our company's capabilities
-align with the client's needs and market opportunities.
-EOF
-
-echo -e "${GREEN}✓ Industry background created${NC}"
-
-# Start autonomous execution
-echo ""
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${BOLD}${BLUE}  STEP 3: Autonomous Research Execution${NC}"
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo ""
-echo -e "${YELLOW}Starting fully autonomous research...${NC}"
-echo -e "${YELLOW}This will run unattended until completion.${NC}"
-echo -e "${YELLOW}You can safely close this window - progress is logged.${NC}"
-echo ""
-
-# Log file
-LOG_FILE="automation-$(date +%Y%m%d-%H%M%S).log"
-echo "Log file: $LOG_FILE"
-echo ""
-
-# Start timestamp
-START_TIME=$(date +%s)
-echo "Started at: $(date)" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-
-# Discovery phase
-echo -e "${CYAN}Phase 1: Research & Opportunity Discovery${NC}" | tee -a "$LOG_FILE"
-echo "Researching companies and finding top $NUM_OPPORTUNITIES strategic opportunities..." | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-
-# Create discovery prompt
-DISCOVERY_PROMPT="I need you to research and identify strategic opportunities. Here's what to do:
+    local discovery_prompt="I need you to research and identify strategic opportunities. Here's what to do:
 
 STEP 1: Research the Companies
 - Read context/company-profile.md and research our company (use web search if URLs provided)
@@ -251,441 +199,245 @@ For each opportunity, create a sprint file in sprints/ directory:
 Work autonomously. Do all the research needed. Use web search extensively.
 Respond with 'DISCOVERY COMPLETE - [number] opportunities identified' when done."
 
-# Run discovery
-echo -e "${CYAN}→ Starting AI research agent...${NC}" | tee -a "$LOG_FILE"
-echo -e "${YELLOW}  [Agent is researching companies and identifying opportunities]${NC}" | tee -a "$LOG_FILE"
-echo -e "${YELLOW}  This may take 5-15 minutes... Progress updates will appear below.${NC}" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+    print_progress "Starting AI research agent..."
+    echo -e "${YELLOW}  [Agent is researching companies and identifying opportunities]${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}  This may take 5-15 minutes... Progress updates will appear below.${NC}" | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 
-# Force output to flush immediately by using unbuffered tee
-# All Claude output goes to both terminal (immediately) and log file
-if command -v stdbuf &> /dev/null; then
-    stdbuf -oL -eL $CLAUDE_CMD -p "$DISCOVERY_PROMPT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
-else
-    $CLAUDE_CMD -p "$DISCOVERY_PROMPT" 2>&1 | tee -a "$LOG_FILE"
-fi
-
-# Wait for sprints to be created with progress feedback
-echo "" | tee -a "$LOG_FILE"
-echo -e "${CYAN}→ Verifying sprint creation...${NC}" | tee -a "$LOG_FILE"
-RETRY_COUNT=0
-MAX_RETRIES=30
-LAST_COUNT=0
-while [ "$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)" -lt "$NUM_OPPORTUNITIES" ] && [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; do
-    CURRENT_COUNT=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
-    if [ "$CURRENT_COUNT" -ne "$LAST_COUNT" ]; then
-        echo -e "${GREEN}  ✓ Created sprint $CURRENT_COUNT of $NUM_OPPORTUNITIES${NC}" | tee -a "$LOG_FILE"
-        LAST_COUNT=$CURRENT_COUNT
+    if command -v stdbuf &> /dev/null; then
+        stdbuf -oL -eL $CLAUDE_CMD -p "$discovery_prompt" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
     else
-        echo -e "${YELLOW}  ⏳ Waiting for sprint files... ($CURRENT_COUNT/$NUM_OPPORTUNITIES created, attempt $RETRY_COUNT/$MAX_RETRIES)${NC}" | tee -a "$LOG_FILE"
+        $CLAUDE_CMD -p "$discovery_prompt" 2>&1 | tee -a "$LOG_FILE"
     fi
-    sleep 5
-    RETRY_COUNT=$((RETRY_COUNT + 1))
-done
 
-SPRINT_COUNT=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
-echo "" | tee -a "$LOG_FILE"
-echo -e "${GREEN}✓ Discovery complete: $SPRINT_COUNT opportunities identified${NC}" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+    # Wait for sprint files
+    wait_for_sprint_files
+}
 
-# Execution phase
-echo -e "${CYAN}Phase 2: Sprint Execution${NC}" | tee -a "$LOG_FILE"
-echo "Executing all $SPRINT_COUNT research sprints..." | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+wait_for_sprint_files() {
+    echo "" | tee -a "$LOG_FILE"
+    print_progress "Verifying sprint creation..."
 
-# Execute each sprint with detailed progress tracking
-SPRINT_NUM_TOTAL=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
-SPRINT_NUM_CURRENT=0
+    local retry_count=0
+    local max_retries=30
+    local last_count=0
 
-for sprint_file in sprints/*.md; do
-    if [ -f "$sprint_file" ]; then
-        SPRINT_NUM=$(basename "$sprint_file" | grep -oE '^[0-9]+')
-        SPRINT_NAME=$(basename "$sprint_file" .md)
-        SPRINT_NUM_CURRENT=$((SPRINT_NUM_CURRENT + 1))
-
-        echo "" | tee -a "$LOG_FILE"
-        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}" | tee -a "$LOG_FILE"
-        echo -e "${BOLD}${BLUE}  SPRINT $SPRINT_NUM of $SPRINT_NUM_TOTAL: $SPRINT_NAME${NC}" | tee -a "$LOG_FILE"
-        echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}" | tee -a "$LOG_FILE"
-        echo "" | tee -a "$LOG_FILE"
-
-        SPRINT_START_TIME=$(date +%s)
-
-        echo -e "${CYAN}→ Starting sprint execution with 6 parallel research tasks...${NC}" | tee -a "$LOG_FILE"
-        echo -e "${YELLOW}  Expected duration: 30-60 minutes${NC}" | tee -a "$LOG_FILE"
-        echo -e "${YELLOW}  AI agents will research: Technical, Market, Architecture, Compliance, Roadmap, and Synthesis${NC}" | tee -a "$LOG_FILE"
-        echo "" | tee -a "$LOG_FILE"
-
-        # Format sprint number with zero padding (01, 02, etc.)
-        SPRINT_NUM_PADDED=$(printf "%02d" "$SPRINT_NUM")
-
-        # Run sprint with progress monitoring in background
-        # Use unbuffered output for immediate visibility
-        if command -v stdbuf &> /dev/null; then
-            stdbuf -oL -eL $CLAUDE_CMD -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE" &
+    while [ "$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)" -lt "$NUM_OPPORTUNITIES" ] && [ "$retry_count" -lt "$max_retries" ]; do
+        local current_count
+        current_count=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
+        if [ "$current_count" -ne "$last_count" ]; then
+            print_success "Created sprint $current_count of $NUM_OPPORTUNITIES"
+            last_count=$current_count
         else
-            $CLAUDE_CMD -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | tee -a "$LOG_FILE" &
+            echo -e "${YELLOW}  ⏳ Waiting for sprint files... ($current_count/$NUM_OPPORTUNITIES created, attempt $retry_count/$max_retries)${NC}" | tee -a "$LOG_FILE"
         fi
-        SPRINT_PID=$!
+        sleep 5
+        retry_count=$((retry_count + 1))
+    done
 
-        # Monitor progress while sprint runs
-        DOTS=0
-        while kill -0 $SPRINT_PID 2>/dev/null; do
-            DOTS=$((DOTS + 1))
-            ELAPSED=$(($(date +%s) - SPRINT_START_TIME))
-            MINS=$((ELAPSED / 60))
-            SECS=$((ELAPSED % 60))
+    local sprint_count
+    sprint_count=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
+    echo "" | tee -a "$LOG_FILE"
+    print_success "Discovery complete: $sprint_count opportunities identified"
+    echo "" | tee -a "$LOG_FILE"
+}
 
-            # Count research files created so far (sprint directory structure: temp/sprint-XX/YY-taskname/)
-            FILE_COUNT=$(find temp/sprint-"${SPRINT_NUM_PADDED}"/ -type f 2>/dev/null | wc -l | tr -d ' ')
+run_sprint_execution_phase() {
+    echo -e "${CYAN}Phase 2: Sprint Execution${NC}" | tee -a "$LOG_FILE"
+    local sprint_count
+    sprint_count=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
+    echo "Executing all $sprint_count research sprints..." | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 
-            # Show heartbeat every 10 seconds
-            if [ $((DOTS % 2)) -eq 0 ]; then
-                echo -e "${CYAN}  ⏱  Sprint $SPRINT_NUM running... ${MINS}m ${SECS}s elapsed, $FILE_COUNT research files created so far${NC}" | tee -a "$LOG_FILE"
+    local sprint_num_current=0
+    local sprint_num_total
+    sprint_num_total=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
+
+    for sprint_file in sprints/*.md; do
+        if [ -f "$sprint_file" ]; then
+            local sprint_num
+            sprint_num=$(basename "$sprint_file" | grep -oE '^[0-9]+')
+            local sprint_name
+            sprint_name=$(basename "$sprint_file" .md)
+            sprint_num_current=$((sprint_num_current + 1))
+
+            echo "" | tee -a "$LOG_FILE"
+            echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}" | tee -a "$LOG_FILE"
+            echo -e "${BOLD}${BLUE}  SPRINT $sprint_num of $sprint_num_total: $sprint_name${NC}" | tee -a "$LOG_FILE"
+            echo -e "${BOLD}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}" | tee -a "$LOG_FILE"
+            echo "" | tee -a "$LOG_FILE"
+
+            local sprint_num_padded
+            sprint_num_padded=$(printf "%02d" "$sprint_num")
+
+            if command -v stdbuf &> /dev/null; then
+                stdbuf -oL -eL $CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
+            else
+                $CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&1 | tee -a "$LOG_FILE"
             fi
+        fi
+    done
+}
 
-            sleep 10
-        done
+run_export_phase() {
+    echo -e "${CYAN}Phase 3: Export & Finalization${NC}" | tee -a "$LOG_FILE"
+    echo "Exporting reports in $EXPORT_FORMAT format..." | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
 
-        # Wait for sprint to complete
-        wait $SPRINT_PID
-        SPRINT_EXIT_CODE=$?
+    local export_num_current=0
+    local export_num_total
+    export_num_total=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
 
-        SPRINT_END_TIME=$(date +%s)
-        SPRINT_DURATION=$((SPRINT_END_TIME - SPRINT_START_TIME))
-        SPRINT_MINS=$((SPRINT_DURATION / 60))
-        SPRINT_SECS=$((SPRINT_DURATION % 60))
-
-        if [ $SPRINT_EXIT_CODE -eq 0 ]; then
-            # Count final files
-            FINAL_FILE_COUNT=$(find temp/sprint-"${SPRINT_NUM_PADDED}"/ -type f 2>/dev/null | wc -l | tr -d ' ')
-            REPORT_EXISTS=$(find reports -name "${SPRINT_NUM_PADDED}-*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+    for sprint_file in sprints/*.md; do
+        if [ -f "$sprint_file" ]; then
+            local sprint_num
+            sprint_num=$(basename "$sprint_file" | grep -oE '^[0-9]+')
+            export_num_current=$((export_num_current + 1))
 
             echo "" | tee -a "$LOG_FILE"
-            echo -e "${GREEN}✓ Sprint $SPRINT_NUM complete in ${SPRINT_MINS}m ${SPRINT_SECS}s${NC}" | tee -a "$LOG_FILE"
-            echo -e "${GREEN}  → Research files created: $FINAL_FILE_COUNT${NC}" | tee -a "$LOG_FILE"
-            echo -e "${GREEN}  → Reports generated: $REPORT_EXISTS${NC}" | tee -a "$LOG_FILE"
+            print_progress "Exporting Sprint $sprint_num ($export_num_current/$export_num_total) to $EXPORT_FORMAT format..."
 
-            # Show overall progress
-            OVERALL_PCT=$((SPRINT_NUM_CURRENT * 100 / SPRINT_NUM_TOTAL))
-            echo -e "${CYAN}  📊 Overall progress: $SPRINT_NUM_CURRENT/$SPRINT_NUM_TOTAL sprints ($OVERALL_PCT%) complete${NC}" | tee -a "$LOG_FILE"
-        else
-            echo "" | tee -a "$LOG_FILE"
-            echo -e "${RED}✗ Sprint $SPRINT_NUM failed with exit code $SPRINT_EXIT_CODE${NC}" | tee -a "$LOG_FILE"
-            echo -e "${YELLOW}  Check log file for details: $LOG_FILE${NC}" | tee -a "$LOG_FILE"
+            if command -v stdbuf &> /dev/null; then
+                stdbuf -oL -eL $CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
+            else
+                $CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
+            fi
         fi
+    done
+}
 
-        echo "" | tee -a "$LOG_FILE"
+# ============================================================================
+# GitHub Pages Deployment Phase
+# ============================================================================
+
+deploy_to_github_pages() {
+    print_section "Step 7: Generate GitHub Pages Landing Page"
+
+    if [ ! -f "./scripts/publish/generate-pages-v2.sh" ]; then
+        print_warning "GitHub Pages generator not found - skipping"
+        return 1
     fi
-done
 
-# Export phase
-echo -e "${CYAN}Phase 3: Export & Finalization${NC}" | tee -a "$LOG_FILE"
-echo "Exporting reports in $EXPORT_FORMAT format..." | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+    print_progress "Generating professional landing page (v2 architecture)..."
 
-# Export each sprint with progress feedback
-EXPORT_NUM_CURRENT=0
-EXPORT_NUM_TOTAL=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
-
-for sprint_file in sprints/*.md; do
-    if [ -f "$sprint_file" ]; then
-        SPRINT_NUM=$(basename "$sprint_file" | grep -oE '^[0-9]+')
-        EXPORT_NUM_CURRENT=$((EXPORT_NUM_CURRENT + 1))
-
-        echo "" | tee -a "$LOG_FILE"
-        echo -e "${YELLOW}→ Exporting Sprint $SPRINT_NUM ($EXPORT_NUM_CURRENT/$EXPORT_NUM_TOTAL) to $EXPORT_FORMAT format...${NC}" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}  [Converting report to professional format]${NC}" | tee -a "$LOG_FILE"
-
-        # Use unbuffered output for immediate visibility
-        if command -v stdbuf &> /dev/null; then
-            stdbuf -oL -eL $CLAUDE_CMD -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
-        else
-            $CLAUDE_CMD -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
-        fi
-
-        if [ -f "reports/${SPRINT_NUM}-*.$EXPORT_FORMAT" ] 2>/dev/null; then
-            echo -e "${GREEN}✓ Sprint $SPRINT_NUM exported successfully${NC}" | tee -a "$LOG_FILE"
-        else
-            echo -e "${YELLOW}⚠ Export may have encountered issues - check log${NC}" | tee -a "$LOG_FILE"
-        fi
-    fi
-done
-
-# Generate GitHub Pages landing page
-echo "" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${BLUE}Step 7: Generate GitHub Pages Landing Page${NC}" | tee -a "$LOG_FILE"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-
-if [ -f "./scripts/publish/generate-pages-v2.sh" ]; then
-    echo -e "${YELLOW}Generating professional landing page for your research (v2 architecture)...${NC}" | tee -a "$LOG_FILE"
-
-    # Run the GitHub Pages generator v2 (JSON + static HTML)
     if ./scripts/publish/generate-pages-v2.sh >> "$LOG_FILE" 2>&1; then
-        echo -e "${GREEN}✓ GitHub Pages generated successfully (v2)${NC}" | tee -a "$LOG_FILE"
-        echo "" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}Landing page created at: docs/index.html (static HTML)${NC}" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}Sprint data created at: docs/sprints-data.json${NC}" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}.nojekyll file created at: docs/.nojekyll${NC}" | tee -a "$LOG_FILE"
+        print_success "GitHub Pages generated successfully (v2)"
+        echo ""
+        print_info "Landing page created at: docs/index.html (static HTML)"
+        print_info "Sprint data created at: docs/sprints-data.json"
+        print_info ".nojekyll file created at: docs/.nojekyll"
 
-        # Commit and push to publish
-        echo "" | tee -a "$LOG_FILE"
-        echo -e "${YELLOW}Publishing to GitHub Pages...${NC}" | tee -a "$LOG_FILE"
+        # Git operations
+        commit_and_push_to_github
+    else
+        print_warning "GitHub Pages generation encountered issues - check log"
+        print_info "You can manually generate later: ./scripts/publish/generate-pages-v2.sh"
+        return 1
+    fi
+}
 
-        # Check if we're in a git repository
-        if git rev-parse --git-dir > /dev/null 2>&1; then
-            # Add the generated pages (index.html, sprints-data.json, and .nojekyll)
-            git add docs/index.html docs/sprints-data.json docs/.nojekyll >> "$LOG_FILE" 2>&1
+commit_and_push_to_github() {
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        print_warning "Not a git repository - pages generated but not published"
+        return 1
+    fi
 
-            # Also copy and add reports to docs/reports directory for web access
-            if [ -d "reports" ]; then
-                mkdir -p docs/reports
-                find reports -name "sprint-*-final-report.*" -type f -exec cp {} docs/reports/ \; 2>> "$LOG_FILE"
-                git add docs/reports/ >> "$LOG_FILE" 2>&1
-            fi
+    print_progress "Publishing to GitHub Pages..."
 
-            # Commit with timestamp
-            TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-            if git commit -m "docs: Update GitHub Pages - $TIMESTAMP
+    # Stage files
+    git add docs/index.html docs/sprints-data.json docs/.nojekyll >> "$LOG_FILE" 2>&1
+
+    # Copy reports
+    if [ -d "reports" ]; then
+        mkdir -p docs/reports
+        find reports -name "sprint-*-final-report.*" -type f -exec cp {} docs/reports/ \; 2>> "$LOG_FILE"
+        git add docs/reports/ >> "$LOG_FILE" 2>&1
+    fi
+
+    # Commit
+    local timestamp
+    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
+    local sprint_count
+    sprint_count=$(find sprints -name "*.md" -type f 2>/dev/null | wc -l)
+    local report_count
+    report_count=$(find reports -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+    if git commit -m "docs: Update GitHub Pages - $timestamp
 
 - Automated research results publication
 - Generated from run-full.sh
-- Sprints completed: $SPRINT_COUNT
-- Reports: $(find reports -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+- Sprints completed: $sprint_count
+- Reports: $report_count
 
 🤖 Generated with Strategic Research Automation" >> "$LOG_FILE" 2>&1; then
+        print_success "Changes committed"
 
-                echo -e "${GREEN}✓ Changes committed${NC}" | tee -a "$LOG_FILE"
+        # Push
+        local current_branch
+        current_branch=$(git branch --show-current)
+        if git push origin "$current_branch" >> "$LOG_FILE" 2>&1; then
+            print_success "Changes pushed to GitHub"
 
-                # Push to remote
-                CURRENT_BRANCH=$(git branch --show-current)
-                if git push origin "$CURRENT_BRANCH" >> "$LOG_FILE" 2>&1; then
-                    echo -e "${GREEN}✓ Changes pushed to GitHub${NC}" | tee -a "$LOG_FILE"
-
-                    # Try to get the GitHub Pages URL
-                    REPO_URL=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
-                    if [[ "$REPO_URL" =~ github.com/([^/]+)/([^/]+) ]]; then
-                        GITHUB_USER="${BASH_REMATCH[1]}"
-                        REPO_NAME="${BASH_REMATCH[2]}"
-
-                        # Ensure GitHub CLI is installed for Pages auto-enablement
-                        if ! command -v gh &> /dev/null; then
-                            echo -e "${YELLOW}GitHub CLI (gh) not found - installing...${NC}" | tee -a "$LOG_FILE"
-
-                            # Detect OS and install gh CLI
-                            if [[ "$OSTYPE" == "darwin"* ]]; then
-                                # macOS - use Homebrew
-                                if command -v brew &> /dev/null; then
-                                    echo -e "${CYAN}Installing via Homebrew...${NC}" | tee -a "$LOG_FILE"
-                                    brew install gh >> "$LOG_FILE" 2>&1
-                                else
-                                    echo -e "${YELLOW}⚠ Homebrew not found - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
-                                    echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
-                                fi
-                            elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-                                # Linux - detect package manager
-                                if command -v apt-get &> /dev/null; then
-                                    echo -e "${CYAN}Installing via apt...${NC}" | tee -a "$LOG_FILE"
-                                    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg >> "$LOG_FILE" 2>&1
-                                    sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg >> "$LOG_FILE" 2>&1
-                                    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-                                    sudo apt-get update >> "$LOG_FILE" 2>&1
-                                    sudo apt-get install gh -y >> "$LOG_FILE" 2>&1
-                                elif command -v yum &> /dev/null; then
-                                    echo -e "${CYAN}Installing via yum...${NC}" | tee -a "$LOG_FILE"
-                                    sudo yum install -y gh >> "$LOG_FILE" 2>&1
-                                elif command -v dnf &> /dev/null; then
-                                    echo -e "${CYAN}Installing via dnf...${NC}" | tee -a "$LOG_FILE"
-                                    sudo dnf install -y gh >> "$LOG_FILE" 2>&1
-                                else
-                                    echo -e "${YELLOW}⚠ Unknown package manager - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
-                                    echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
-                                fi
-                            else
-                                echo -e "${YELLOW}⚠ Unknown OS ($OSTYPE) - cannot auto-install gh CLI${NC}" | tee -a "$LOG_FILE"
-                                echo -e "${YELLOW}Install manually: https://cli.github.com/manual/installation${NC}" | tee -a "$LOG_FILE"
-                            fi
-
-                            # Verify installation
-                            if command -v gh &> /dev/null; then
-                                echo -e "${GREEN}✓ GitHub CLI installed successfully${NC}" | tee -a "$LOG_FILE"
-                            else
-                                echo -e "${YELLOW}⚠ GitHub CLI installation failed - Pages auto-enable skipped${NC}" | tee -a "$LOG_FILE"
-                                echo -e "${YELLOW}Enable manually: GitHub repo Settings → Pages → Source: $CURRENT_BRANCH, /docs${NC}" | tee -a "$LOG_FILE"
-                            fi
-                        fi
-
-                        # Try to enable GitHub Pages automatically using gh CLI
-                        if command -v gh &> /dev/null; then
-                            # Check if user is authenticated
-                            if ! gh auth status >> "$LOG_FILE" 2>&1; then
-                                echo -e "${YELLOW}GitHub CLI not authenticated - logging in...${NC}" | tee -a "$LOG_FILE"
-                                echo -e "${CYAN}Please follow the authentication prompts:${NC}" | tee -a "$LOG_FILE"
-
-                                if gh auth login; then
-                                    echo -e "${GREEN}✓ GitHub CLI authenticated successfully${NC}" | tee -a "$LOG_FILE"
-                                else
-                                    echo -e "${YELLOW}⚠ GitHub CLI authentication failed - Pages auto-enable skipped${NC}" | tee -a "$LOG_FILE"
-                                    echo -e "${YELLOW}Enable manually: GitHub repo Settings → Pages → Source: $CURRENT_BRANCH, /docs${NC}" | tee -a "$LOG_FILE"
-                                fi
-                            fi
-
-                            # Proceed only if authenticated
-                            if gh auth status >> "$LOG_FILE" 2>&1; then
-                                echo -e "${YELLOW}Enabling GitHub Pages...${NC}" | tee -a "$LOG_FILE"
-
-                                # Check if Pages is already enabled
-                                PAGES_STATUS=$(gh api "repos/$GITHUB_USER/$REPO_NAME/pages" 2>&1 || echo "not_found")
-
-                                if [[ "$PAGES_STATUS" == *"not_found"* ]] || [[ "$PAGES_STATUS" == *"404"* ]]; then
-                                    # Enable GitHub Pages using the API
-                                    if gh api -X POST "repos/$GITHUB_USER/$REPO_NAME/pages" \
-                                        -f "source[branch]=$CURRENT_BRANCH" \
-                                        -f "source[path]=/docs" >> "$LOG_FILE" 2>&1; then
-                                        echo -e "${GREEN}✓ GitHub Pages enabled automatically!${NC}" | tee -a "$LOG_FILE"
-                                        sleep 2  # Give API a moment to process
-                                    else
-                                        echo -e "${YELLOW}⚠ Could not enable automatically - enable manually in repo settings${NC}" | tee -a "$LOG_FILE"
-                                    fi
-                                else
-                                    echo -e "${GREEN}✓ GitHub Pages already enabled${NC}" | tee -a "$LOG_FILE"
-                                fi
-                            fi
-                        fi
-
-                        echo "" | tee -a "$LOG_FILE"
-                        PAGES_URL="https://${GITHUB_USER}.github.io/${REPO_NAME}/pages/"
-                        echo -e "${BOLD}${CYAN}Your research is now live at:${NC}" | tee -a "$LOG_FILE"
-                        echo -e "${BOLD}${CYAN}  → $PAGES_URL${NC}" | tee -a "$LOG_FILE"
-                        echo "" | tee -a "$LOG_FILE"
-                        echo -e "${YELLOW}Note: First-time publishing may take 2-3 minutes to deploy${NC}" | tee -a "$LOG_FILE"
-                        echo -e "${YELLOW}If not enabled: GitHub repo Settings → Pages → Source: $CURRENT_BRANCH, /docs${NC}" | tee -a "$LOG_FILE"
-                    else
-                        echo -e "${CYAN}Check your GitHub Pages URL in repository settings${NC}" | tee -a "$LOG_FILE"
-                    fi
-                else
-                    echo -e "${YELLOW}⚠ Push failed - publish manually: git push origin $CURRENT_BRANCH${NC}" | tee -a "$LOG_FILE"
-                fi
-            else
-                # No changes to commit (pages already up to date)
-                echo -e "${GREEN}✓ GitHub Pages already up to date${NC}" | tee -a "$LOG_FILE"
-            fi
+            # Enable GitHub Pages
+            enable_github_pages_if_needed "$current_branch"
         else
-            echo -e "${YELLOW}⚠ Not a git repository - pages generated but not published${NC}" | tee -a "$LOG_FILE"
-            echo -e "${YELLOW}To publish: commit docs/pages/ and push to GitHub${NC}" | tee -a "$LOG_FILE"
+            print_warning "Push failed - publish manually: git push origin $current_branch"
         fi
     else
-        echo -e "${YELLOW}⚠ GitHub Pages generation encountered issues - check log${NC}" | tee -a "$LOG_FILE"
-        echo -e "${YELLOW}You can manually generate later: ./scripts/publish/generate-pages-v2.sh${NC}" | tee -a "$LOG_FILE"
+        print_success "GitHub Pages already up to date"
     fi
-elif [ -f "./scripts/publish/generate-pages.sh" ]; then
-    echo -e "${YELLOW}Using legacy v1 generator (v2 not found)...${NC}" | tee -a "$LOG_FILE"
+}
 
-    # Run the GitHub Pages generator v1 (fallback)
-    if ./scripts/publish/generate-pages.sh >> "$LOG_FILE" 2>&1; then
-        echo -e "${GREEN}✓ GitHub Pages generated successfully (v1)${NC}" | tee -a "$LOG_FILE"
-        echo "" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}Landing page created at: docs/index.html${NC}" | tee -a "$LOG_FILE"
-        echo -e "${CYAN}.nojekyll file created at: docs/.nojekyll${NC}" | tee -a "$LOG_FILE"
+enable_github_pages_if_needed() {
+    local branch="$1"
 
-        # Git operations for v1
-        if git rev-parse --git-dir > /dev/null 2>&1; then
-            git add docs/index.html docs/.nojekyll >> "$LOG_FILE" 2>&1
+    # Extract GitHub user and repo from git remote
+    local repo_url
+    repo_url=$(git config --get remote.origin.url 2>/dev/null | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+    if [[ "$repo_url" =~ github.com/([^/]+)/([^/]+) ]]; then
+        local github_user="${BASH_REMATCH[1]}"
+        local repo_name="${BASH_REMATCH[2]}"
 
-            if [ -d "reports" ]; then
-                mkdir -p docs/reports
-                find reports -name "sprint-*-final-report.*" -type f -exec cp {} docs/reports/ \; 2>> "$LOG_FILE"
-                git add docs/reports/ >> "$LOG_FILE" 2>&1
-            fi
-
-            TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-            if git commit -m "docs: Update GitHub Pages (v1) - $TIMESTAMP
-
-- Automated research results publication
-- Generated from run-full.sh
-- Sprints completed: $SPRINT_COUNT
-- Reports: $(find reports -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-
-🤖 Generated with Strategic Research Automation" >> "$LOG_FILE" 2>&1; then
-                echo -e "${GREEN}✓ Changes committed${NC}" | tee -a "$LOG_FILE"
-
-                CURRENT_BRANCH=$(git branch --show-current)
-                if git push origin "$CURRENT_BRANCH" >> "$LOG_FILE" 2>&1; then
-                    echo -e "${GREEN}✓ Changes pushed to GitHub${NC}" | tee -a "$LOG_FILE"
-                else
-                    echo -e "${YELLOW}⚠ Push failed - publish manually: git push origin $CURRENT_BRANCH${NC}" | tee -a "$LOG_FILE"
-                fi
-            else
-                echo -e "${GREEN}✓ GitHub Pages already up to date${NC}" | tee -a "$LOG_FILE"
+        # Ensure GitHub CLI is ready
+        if ensure_github_cli_ready; then
+            # Enable GitHub Pages
+            if enable_github_pages "$github_user" "$repo_name" "$branch" "/docs"; then
+                echo ""
+                local pages_url
+                pages_url=$(get_github_pages_url "$github_user" "$repo_name")
+                echo -e "${BOLD}${CYAN}Your research is now live at:${NC}"
+                echo -e "${BOLD}${CYAN}  → $pages_url${NC}"
+                echo ""
+                print_info "First-time publishing may take 2-3 minutes to deploy"
             fi
         else
-            echo -e "${YELLOW}⚠ Not a git repository - pages generated but not published${NC}" | tee -a "$LOG_FILE"
+            print_warning "GitHub CLI not ready - enable Pages manually"
+            print_info "GitHub repo Settings → Pages → Source: $branch, /docs"
         fi
-    else
-        echo -e "${YELLOW}⚠ GitHub Pages generation encountered issues - check log${NC}" | tee -a "$LOG_FILE"
     fi
-else
-    echo -e "${YELLOW}⚠ GitHub Pages generator not found - skipping${NC}" | tee -a "$LOG_FILE"
-    echo -e "${YELLOW}Install v2: scripts/publish/generate-pages-v2.sh${NC}" | tee -a "$LOG_FILE"
-fi
+}
 
-# Final summary
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-HOURS=$((DURATION / 3600))
-MINUTES=$(((DURATION % 3600) / 60))
+# ============================================================================
+# Main Execution
+# ============================================================================
 
-echo "" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${GREEN}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${GREEN}  AUTOMATION COMPLETE!${NC}" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${GREEN}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-echo "Finished at: $(date)" | tee -a "$LOG_FILE"
-echo "Total duration: ${HOURS}h ${MINUTES}m" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-echo -e "${BOLD}Results:${NC}" | tee -a "$LOG_FILE"
-echo "  • Opportunities analyzed: $SPRINT_COUNT" | tee -a "$LOG_FILE"
-echo "  • Reports generated: $(find reports -name "*.md" -type f 2>/dev/null | wc -l)" | tee -a "$LOG_FILE"
-echo "  • Exports created: $(find reports -name "*.$EXPORT_FORMAT" -type f 2>/dev/null | wc -l)" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-echo -e "${BOLD}Output locations:${NC}" | tee -a "$LOG_FILE"
-echo "  • Sprint definitions: sprints/" | tee -a "$LOG_FILE"
-echo "  • Research files: temp/sprint-*/" | tee -a "$LOG_FILE"
-echo "  • Final reports: reports/" | tee -a "$LOG_FILE"
-echo "  • GitHub Pages: docs/index.html (v2: static HTML + JSON)" | tee -a "$LOG_FILE"
-echo "  • Sprint data: docs/sprints-data.json" | tee -a "$LOG_FILE"
-echo "  • Execution log: $LOG_FILE" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
-echo -e "${CYAN}Next steps:${NC}" | tee -a "$LOG_FILE"
-echo "  1. Review reports: ls -lh reports/" | tee -a "$LOG_FILE"
-echo "  2. Read summaries: cat reports/*-report.md" | tee -a "$LOG_FILE"
-echo "  3. View landing page: cd docs && python3 -m http.server 8000" | tee -a "$LOG_FILE"
-echo "     (V2 requires local server: http://localhost:8000)" | tee -a "$LOG_FILE"
-echo "  4. Share with client: reports/*.$EXPORT_FORMAT" | tee -a "$LOG_FILE"
-echo "  5. Share live site: Your GitHub Pages URL (if enabled)" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+main() {
+    # Change to project root
+    cd "$PROJECT_ROOT"
 
-# Final git flow verification
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${BLUE}  FINAL GIT FLOW VERIFICATION${NC}" | tee -a "$LOG_FILE"
-echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+    # Execute workflow
+    collect_user_input
+    setup_context_files
+    execute_research
+    deploy_to_github_pages
 
-if [ -f "$CLAUDE_CMD" ] || command -v "$CLAUDE_CMD" &> /dev/null; then
-    echo -e "${CYAN}Running git flow verification with Claude Code...${NC}" | tee -a "$LOG_FILE"
-    echo "" | tee -a "$LOG_FILE"
+    # Final summary
+    print_section "AUTOMATION COMPLETE!" "$GREEN"
+    echo "Finished at: $(date)"
+    echo ""
+    print_success "All tasks completed successfully!"
+    echo ""
+}
 
-    # Run the exact prompt for git flow verification
-    $CLAUDE_CMD -p "ensure with git flow: commit/push/release/merge/CI/CD" 2>&1 | tee -a "$LOG_FILE"
-
-    echo "" | tee -a "$LOG_FILE"
-    echo -e "${GREEN}✓ Git flow verification complete${NC}" | tee -a "$LOG_FILE"
-else
-    echo -e "${YELLOW}⚠ Claude command not found ($CLAUDE_CMD) - skipping git flow verification${NC}" | tee -a "$LOG_FILE"
-    echo -e "${YELLOW}Manual verification: commit, push, create release, merge to main${NC}" | tee -a "$LOG_FILE"
-fi
-
-echo "" | tee -a "$LOG_FILE"
-echo -e "${GREEN}Happy researching! 🚀${NC}" | tee -a "$LOG_FILE"
-echo ""
+# Run main function
+main "$@"
