@@ -379,11 +379,13 @@ section "Test 7: Idempotence Test"
 
 info "Running data generator twice..."
 "$PROJECT_ROOT/scripts/publish/generate-pages-data.sh" "$OUTPUT_DIR" "$REPORTS_DIR" "$TEST_DIR/config/project-config.yml" > /dev/null 2>&1
+# shellcheck disable=SC2034
 FIRST_HASH=$(md5 -q "$OUTPUT_DIR/sprints-data.json" 2>/dev/null || md5sum "$OUTPUT_DIR/sprints-data.json" | cut -d' ' -f1)
 
 sleep 1  # Wait 1 second to ensure different timestamp
 
 "$PROJECT_ROOT/scripts/publish/generate-pages-data.sh" "$OUTPUT_DIR" "$REPORTS_DIR" "$TEST_DIR/config/project-config.yml" > /dev/null 2>&1
+# shellcheck disable=SC2034
 SECOND_HASH=$(md5 -q "$OUTPUT_DIR/sprints-data.json" 2>/dev/null || md5sum "$OUTPUT_DIR/sprints-data.json" | cut -d' ' -f1)
 
 # Note: Hashes will differ due to generated_at timestamp, but structure should be same
