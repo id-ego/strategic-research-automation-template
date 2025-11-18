@@ -18,11 +18,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.8.9] - 2025-11-17
+## [3.9.0] - 2025-11-17
+
+### Fixed - CRITICAL
+
+Based on real-world usage, fixed 4 critical bugs that prevented proper GitHub Pages updates:
+
+- **Issue #1: GitHub Pages generator regex patterns only matched placeholder values** (⚠️ HIGH PRIORITY)
+  - **Root Cause**: Regex patterns `\$0B+` and `0/100` only matched initial values, not existing data
+  - **Impact**: Running script twice failed silently - script reported success but HTML unchanged
+  - **Fix**: Updated sed patterns to match ANY numeric value: `\$[0-9]+B+` and `[0-9]+/100`
+  - **Validation**: Added post-update checks to detect silent failures
+  - **Regression Test**: Test validates 0→3→4 sprint incremental updates
+
+- **Issue #2: Hardcoded claude-eng paths prevented command override** (⚠️ MEDIUM PRIORITY)
+  - **Root Cause**: `run-full.sh` had 8 hardcoded `./scripts/setup/claude-eng` references
+  - **Impact**: Users couldn't override with custom Claude commands for testing
+  - **Fix**: Added `CLAUDE_CMD` variable with consistent pattern across all scripts
+  - **Files Fixed**: `run-full.sh` (8 refs), `test/integration/single-sprint-test.sh` (4 refs)
+
+- **Issue #3: Redundant title prefixes in report cards** (⚠️ LOW PRIORITY - UX)
+  - **Root Cause**: No title cleanup - extracted "Sprint 02:" then prepended it again
+  - **Impact**: Cards showed "Sprint 02: Sprint 02: Title" (unprofessional)
+  - **Fix**: Iterative sed loop removes all redundant prefixes before output
+  - **Patterns Removed**: "Sprint XX:", "Strategic Report:", "Strategic Research Report:"
+
+- **Issue #4: Button layout used flexbox causing text wrapping** (⚠️ LOW PRIORITY - UX)
+  - **Root Cause**: Flexbox with `flex: 1` made 4 buttons too narrow (25% width each)
+  - **Impact**: Button text wrapped, poor mobile experience, hard to click
+  - **Fix**: Switched to CSS Grid with 2x2 layout (50% width each)
+  - **Enhancements**: Added `white-space: nowrap`, mobile-responsive single column
 
 ### Added
 
-- **Model selection enforcement**
+- **Integration test suite for GitHub Pages generator**
+  - Validates initial generation (0 → 3 sprints)
+  - Validates idempotent updates (3 → 3 sprints with same data)
+  - **Regression test for Issue #1** (3 → 4 sprints incremental addition)
+  - Validates title cleanup (no redundant prefixes)
+  - Validates button layout (CSS Grid, not Flexbox)
+  - Test file: `test/integration/test-generate-pages.sh`
+
+- **Model selection enforcement** (from v3.8.9)
   - All automation scripts now default to **Sonnet 4.5** model for optimal research quality
   - Centralized model configuration in `scripts/setup/claude-eng` wrapper
   - Environment variable override support via `CLAUDE_MODEL` (haiku, sonnet, opus)
@@ -31,9 +68,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated `scripts/setup/claude-eng` to enforce Sonnet model by default
-- Added model pricing comparison table to README
-- Enhanced documentation with model selection guidelines
+- **Updated `scripts/publish/generate-pages.sh`**:
+  - Idempotent regex patterns for stats updates (Lines 498-516)
+  - Iterative title cleanup loop (Lines 404-418)
+  - Improved score extraction to handle multiple formats (Lines 413-414)
+  - CSS Grid button layout with mobile responsiveness (Lines 238-254, 307-309)
+  - Added validation warnings for failed stat updates
+
+- **Updated `scripts/run-full.sh`**:
+  - Added `CLAUDE_CMD` variable (Line 8)
+  - Replaced 8 hardcoded paths with `$CLAUDE_CMD`
+
+- **Updated `test/integration/single-sprint-test.sh`**:
+  - Added `CLAUDE_CMD` variable (Line 9)
+  - Replaced 4 hardcoded paths with `$CLAUDE_CMD`
+
+### Testing
+
+All fixes validated by comprehensive integration test:
+```bash
+bash test/integration/test-generate-pages.sh
+# ✓ ALL TESTS PASSED - GitHub Pages generator is production-ready!
+```
+
+### Documentation
+
+- Added detailed bug analysis based on real-world usage
+- Updated README with model selection guidelines
+- Enhanced troubleshooting documentation
+
+### Credits
+
+Bug reports and analysis from real-world deployment testing. Thank you to early adopters who provided detailed feedback!
+
+---
+
+## [3.8.9] - 2025-11-17
+
+### Note
+
+This version was superseded by v3.9.0 which includes critical bug fixes from production usage.
 
 ---
 

@@ -4,6 +4,9 @@
 
 set -e
 
+# Use CLAUDE_CMD environment variable or default to YOLO mode (claude-eng)
+CLAUDE_CMD="${CLAUDE_CMD:-./scripts/setup/claude-eng}"
+
 # Disable output buffering for immediate visibility
 # This ensures rookies see output as it happens, not in bursts
 export PYTHONUNBUFFERED=1
@@ -257,9 +260,9 @@ echo "" | tee -a "$LOG_FILE"
 # Force output to flush immediately by using unbuffered tee
 # All Claude output goes to both terminal (immediately) and log file
 if command -v stdbuf &> /dev/null; then
-    stdbuf -oL -eL ./scripts/setup/claude-eng -p "$DISCOVERY_PROMPT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
+    stdbuf -oL -eL $CLAUDE_CMD -p "$DISCOVERY_PROMPT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
 else
-    ./scripts/setup/claude-eng -p "$DISCOVERY_PROMPT" 2>&1 | tee -a "$LOG_FILE"
+    $CLAUDE_CMD -p "$DISCOVERY_PROMPT" 2>&1 | tee -a "$LOG_FILE"
 fi
 
 # Wait for sprints to be created with progress feedback
@@ -319,9 +322,9 @@ for sprint_file in sprints/*.md; do
         # Run sprint with progress monitoring in background
         # Use unbuffered output for immediate visibility
         if command -v stdbuf &> /dev/null; then
-            stdbuf -oL -eL ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE" &
+            stdbuf -oL -eL $CLAUDE_CMD -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE" &
         else
-            ./scripts/setup/claude-eng -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | tee -a "$LOG_FILE" &
+            $CLAUDE_CMD -p "/execute-sprint $SPRINT_NUM_PADDED" 2>&1 | tee -a "$LOG_FILE" &
         fi
         SPRINT_PID=$!
 
@@ -396,9 +399,9 @@ for sprint_file in sprints/*.md; do
 
         # Use unbuffered output for immediate visibility
         if command -v stdbuf &> /dev/null; then
-            stdbuf -oL -eL ./scripts/setup/claude-eng -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
+            stdbuf -oL -eL $CLAUDE_CMD -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
         else
-            ./scripts/setup/claude-eng -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
+            $CLAUDE_CMD -p "/export-findings $SPRINT_NUM --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
         fi
 
         if [ -f "reports/${SPRINT_NUM}-*.$EXPORT_FORMAT" ] 2>/dev/null; then
@@ -558,17 +561,17 @@ echo -e "${BOLD}${BLUE}  FINAL GIT FLOW VERIFICATION${NC}" | tee -a "$LOG_FILE"
 echo -e "${BOLD}${BLUE}═══════════════════════════════════════════════════════════${NC}" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
-if [ -f "./scripts/setup/claude-eng" ]; then
+if [ -f "$CLAUDE_CMD" ] || command -v "$CLAUDE_CMD" &> /dev/null; then
     echo -e "${CYAN}Running git flow verification with Claude Code...${NC}" | tee -a "$LOG_FILE"
     echo "" | tee -a "$LOG_FILE"
 
     # Run the exact prompt for git flow verification
-    ./scripts/setup/claude-eng -p "ensure with git flow: commit/push/release/merge/CI/CD" 2>&1 | tee -a "$LOG_FILE"
+    $CLAUDE_CMD -p "ensure with git flow: commit/push/release/merge/CI/CD" 2>&1 | tee -a "$LOG_FILE"
 
     echo "" | tee -a "$LOG_FILE"
     echo -e "${GREEN}✓ Git flow verification complete${NC}" | tee -a "$LOG_FILE"
 else
-    echo -e "${YELLOW}⚠ claude-eng wrapper not found - skipping git flow verification${NC}" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}⚠ Claude command not found ($CLAUDE_CMD) - skipping git flow verification${NC}" | tee -a "$LOG_FILE"
     echo -e "${YELLOW}Manual verification: commit, push, create release, merge to main${NC}" | tee -a "$LOG_FILE"
 fi
 
