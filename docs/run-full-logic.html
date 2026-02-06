@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>run-full.sh 로직 플로우</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', -apple-system, 'Apple SD Gothic Neo', sans-serif;
+    background: #f8f9fa;
+    color: #1a1a2e;
+    padding: 40px 20px;
+    line-height: 1.7;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 40px;
+    font-size: 14px;
+  }
+
+  /* Phase container */
+  .phase {
+    position: relative;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: default;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .phase-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .phase-body {
+    padding: 0 20px 20px 64px;
+  }
+
+  /* Phase colors - light mode */
+  .phase-input { background: #f5f0ff; border: 1px solid #d8b4fe; }
+  .phase-input .phase-header { color: #6b21a8; }
+  .phase-input .phase-num { background: #7c3aed; }
+
+  .phase-context { background: #eff6ff; border: 1px solid #93c5fd; }
+  .phase-context .phase-header { color: #1d4ed8; }
+  .phase-context .phase-num { background: #2563eb; }
+
+  .phase-research { background: #f0fdf4; border: 1px solid #86efac; }
+  .phase-research .phase-header { color: #166534; }
+  .phase-research .phase-num { background: #16a34a; }
+
+  .phase-deploy { background: #fffbeb; border: 1px solid #fcd34d; }
+  .phase-deploy .phase-header { color: #92400e; }
+  .phase-deploy .phase-num { background: #d97706; }
+
+  .phase-summary { background: #ecfdf5; border: 1px solid #6ee7b7; }
+  .phase-summary .phase-header { color: #065f46; }
+  .phase-summary .phase-num { background: #059669; }
+
+  /* Arrow between phases */
+  .arrow {
+    text-align: center;
+    font-size: 20px;
+    color: #9ca3af;
+    padding: 4px 0;
+  }
+
+  /* Steps inside phase */
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 8px;
+    border-left: 3px solid #d1d5db;
+    font-size: 14px;
+  }
+  .step-icon { flex-shrink: 0; font-size: 16px; }
+  .step-content { flex: 1; }
+  .step-label {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
+  }
+  .step-detail { color: #6b7280; font-size: 13px; }
+  .step-cmd {
+    display: inline-block;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    color: #93c5fd;
+    margin-top: 4px;
+  }
+
+  /* Sub-phase */
+  .subphase {
+    margin: 12px 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .subphase-header {
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.03);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+  }
+  .subphase-body { padding: 10px 14px; }
+
+  /* Loop indicator */
+  .loop-box {
+    border: 1px dashed #9ca3af;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
+    position: relative;
+    background: rgba(249,115,22,0.03);
+  }
+  .loop-label {
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: #f0fdf4;
+    padding: 0 8px;
+    font-size: 12px;
+    color: #ea580c;
+    font-weight: 600;
+  }
+
+  /* Decision */
+  .decision {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    padding: 8px 14px;
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #92400e;
+  }
+  .decision-icon { font-size: 16px; flex-shrink: 0; }
+
+  /* File reference */
+  .file-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #15803d;
+    margin: 2px 0;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 32px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .legend-title {
+    width: 100%;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; color: #374151; }
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Dependency list */
+  .deps {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .deps h3 { color: #111827; margin-bottom: 12px; font-size: 15px; }
+  .dep-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .dep-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 6px 10px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #f3f4f6;
+    color: #374151;
+  }
+  .dep-item .file-ref { margin: 0; }
+
+  code {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-size: 12px;
+    color: #475569;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>run-full.sh</h1>
+<p class="subtitle">전략 리서치 자동화 파이프라인 &mdash; 전체 로직 흐름도</p>
+
+<!-- ============ PHASE 1 ============ -->
+<div class="phase phase-input">
+  <div class="phase-header">
+    <span class="phase-num">1</span>
+    collect_user_input() &mdash; 사용자 입력 단계
+  </div>
+  <div class="phase-body">
+    <div class="step">
+      <span class="step-icon">💬</span>
+      <div class="step-content">
+        <div class="step-label">질문 1: 우리 회사 정보</div>
+        <div class="step-detail">회사명, 서비스/제품, 웹사이트 또는 LinkedIn URL</div>
+        <div class="step-cmd">read -r -p "Your company info: " COMPANY_INFO</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">💬</span>
+      <div class="step-content">
+        <div class="step-label">질문 2: 클라이언트 정보</div>
+        <div class="step-detail">클라이언트 회사명, 웹사이트, 배경 정보</div>
+        <div class="step-cmd">read -r -p "Client info: " CLIENT_INFO</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">💬</span>
+      <div class="step-content">
+        <div class="step-label">질문 3: 추가 맥락 (선택)</div>
+        <div class="step-detail">산업 초점, 제약 조건 등. Enter로 건너뛰기 가능</div>
+        <div class="step-cmd">read -r -p "Additional context: " ADDITIONAL_CONTEXT</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">🔢</span>
+      <div class="step-content">
+        <div class="step-label">탐색할 기회 수</div>
+        <div class="step-detail">1-3개 빠른 분석 ($30-60) / 4-6개 종합 분석 ($100-150) / 7-10개 심층 분석 ($200+)</div>
+        <div class="step-cmd">NUM_OPPORTUNITIES (기본값: 3)</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">📄</span>
+      <div class="step-content">
+        <div class="step-label">내보내기 형식</div>
+        <div class="step-detail">markdown / pdf / docx / all 중 선택</div>
+        <div class="step-cmd">EXPORT_FORMAT (기본값: pdf)</div>
+      </div>
+    </div>
+    <div class="decision">
+      <span class="decision-icon">⚠️</span>
+      <span>확인: "자율 실행을 진행하시겠습니까?" &rarr; No 선택 시 종료</span>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">▼</div>
+
+<!-- ============ PHASE 2 ============ -->
+<div class="phase phase-context">
+  <div class="phase-header">
+    <span class="phase-num">2</span>
+    setup_context_files() &mdash; 컨텍스트 파일 생성
+  </div>
+  <div class="phase-body">
+    <div class="step">
+      <span class="step-icon">🏢</span>
+      <div class="step-content">
+        <div class="step-label">generate_company_context()</div>
+        <div class="step-detail">사용자 입력(COMPANY_INFO) &rarr; <span class="file-ref">context/company-profile.md</span></div>
+        <div class="step-detail">원본 정보 + Claude에게 웹 리서치를 지시하는 프롬프트 포함</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">🤝</span>
+      <div class="step-content">
+        <div class="step-label">generate_client_context()</div>
+        <div class="step-detail">CLIENT_INFO + ADDITIONAL_CONTEXT &rarr; <span class="file-ref">context/client-info.md</span></div>
+        <div class="step-detail">클라이언트 기업 분석을 위한 리서치 지시사항 포함</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">🏭</span>
+      <div class="step-content">
+        <div class="step-label">generate_industry_context()</div>
+        <div class="step-detail">산업 분석 템플릿 &rarr; <span class="file-ref">context/industry-background.md</span></div>
+        <div class="step-detail">시장 동향, 규제, 경쟁 환경 조사 지시</div>
+      </div>
+    </div>
+    <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+      출처: <span class="file-ref">scripts/lib/context-generator.sh</span>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">▼</div>
+
+<!-- ============ PHASE 3 ============ -->
+<div class="phase phase-research">
+  <div class="phase-header">
+    <span class="phase-num">3</span>
+    execute_research() &mdash; 자율 리서치 실행
+  </div>
+  <div class="phase-body">
+
+    <!-- Sub-phase 3A -->
+    <div class="subphase">
+      <div class="subphase-header">
+        <span>🔍</span> Phase 3A: run_discovery_phase() &mdash; 기회 발견
+      </div>
+      <div class="subphase-body">
+        <div class="step">
+          <span class="step-icon">🤖</span>
+          <div class="step-content">
+            <div class="step-label">Claude AI 리서치 에이전트 실행</div>
+            <div class="step-detail">
+              1. 컨텍스트 파일 읽기 &rarr; 2. 양사 웹 검색 &rarr;
+              3. NUM_OPPORTUNITIES개 전략적 기회 식별 &rarr;
+              4. 스프린트 파일 생성
+            </div>
+            <div class="step-cmd">$CLAUDE_CMD -p "$discovery_prompt" 2>&amp;1 | tee -a "$LOG_FILE"</div>
+            <div class="step-detail" style="margin-top: 4px;">소요 시간: 약 5-15분</div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-icon">⏳</span>
+          <div class="step-content">
+            <div class="step-label">wait_for_sprint_files() &mdash; 스프린트 파일 대기</div>
+            <div class="step-detail">5초 간격 폴링, 최대 30회 재시도. <span class="file-ref">sprints/*.md</span> 파일 수 &ge; NUM_OPPORTUNITIES 될 때까지 대기</div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #15803d; margin-top: 4px;">
+          산출물: <span class="file-ref">sprints/01-xxx.md</span>
+          <span class="file-ref">sprints/02-xxx.md</span>
+          <span class="file-ref">sprints/03-xxx.md</span> ...
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-phase 3B -->
+    <div class="subphase">
+      <div class="subphase-header">
+        <span>🚀</span> Phase 3B: run_sprint_execution_phase() &mdash; 스프린트 실행
+      </div>
+      <div class="subphase-body">
+        <div class="loop-box">
+          <span class="loop-label">for sprint_file in sprints/*.md</span>
+          <div class="step">
+            <span class="step-icon">🤖</span>
+            <div class="step-content">
+              <div class="step-label">Claude로 스프린트 실행</div>
+              <div class="step-detail">각 스프린트마다 독립적인 Claude 세션을 생성하여 리서치 수행</div>
+              <div class="step-cmd">$CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&amp;1 | tee -a "$LOG_FILE"</div>
+              <div class="step-detail" style="margin-top: 4px;">
+                종료 코드를 <code>PIPESTATUS[0]</code>로 확인 &rarr; 성공 시 SUCCESSFUL_SPRINTS++, 실패 시 FAILED_SPRINTS++
+              </div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #15803d; margin-top: 4px;">
+            산출물: <span class="file-ref">temp/sprint-XX/*.md</span> (스프린트당 25개 이상 리서치 파일)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-phase 3C -->
+    <div class="subphase">
+      <div class="subphase-header">
+        <span>📦</span> Phase 3C: run_export_phase() &mdash; 보고서 내보내기
+      </div>
+      <div class="subphase-body">
+        <div class="loop-box">
+          <span class="loop-label">for sprint_file in sprints/*.md</span>
+          <div class="step">
+            <span class="step-icon">🤖</span>
+            <div class="step-content">
+              <div class="step-label">리서치 결과를 최종 보고서로 합성 및 내보내기</div>
+              <div class="step-detail">리서치 파일들을 종합하여 최종 보고서 생성 후 지정된 형식으로 변환</div>
+              <div class="step-cmd">$CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&amp;1 | tee -a "$LOG_FILE"</div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #15803d; margin-top: 4px;">
+            산출물: <span class="file-ref">reports/sprint-XX-final-report.md</span>
+            <span class="file-ref">reports/sprint-XX-final-report.pdf</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="arrow">▼</div>
+
+<!-- ============ PHASE 4 ============ -->
+<div class="phase phase-deploy">
+  <div class="phase-header">
+    <span class="phase-num">4</span>
+    deploy_to_github_pages() &mdash; GitHub Pages 배포
+  </div>
+  <div class="phase-body">
+    <div class="step">
+      <span class="step-icon">📊</span>
+      <div class="step-content">
+        <div class="step-label">generate-pages-v2.sh &mdash; 랜딩 페이지 생성</div>
+        <div class="step-detail">
+          Step 1: <span class="file-ref">generate-pages-data.sh</span> &rarr; reports/*.md 파싱 &rarr; <span class="file-ref">docs/sprints-data.json</span> (제목, 점수, TAM, 추천등급 추출)<br>
+          Step 2: <span class="file-ref">generate-pages-html.sh</span> &rarr; 템플릿 복사 &rarr; <span class="file-ref">docs/index.html</span> + <span class="file-ref">docs/.nojekyll</span>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">📤</span>
+      <div class="step-content">
+        <div class="step-label">commit_and_push_to_github() &mdash; Git 커밋 및 푸시</div>
+        <div class="step-detail">
+          git add docs/ &rarr; git commit &rarr; git push origin $branch
+        </div>
+        <div class="step-detail">보고서 파일도 <span class="file-ref">docs/reports/</span>로 복사하여 함께 배포</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">⚙️</span>
+      <div class="step-content">
+        <div class="step-label">enable_github_pages_for_repo() &mdash; Pages 활성화</div>
+        <div class="step-detail">
+          GitHub API를 통해 Pages 자동 활성화 (소스: $branch, /docs)
+        </div>
+        <div class="step-cmd">gh api -X POST repos/$user/$repo/pages</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">🔄</span>
+      <div class="step-content">
+        <div class="step-label">trigger_pages_workflow() &mdash; 배포 워크플로우 트리거</div>
+        <div class="step-detail">GitHub Actions의 publish-pages.yml 워크플로우를 수동 실행</div>
+        <div class="step-cmd">gh workflow run "publish-pages.yml"</div>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-icon">✅</span>
+      <div class="step-content">
+        <div class="step-label">verify_pages_deployment() &mdash; 배포 확인</div>
+        <div class="step-detail">
+          10초 간격으로 최대 120초 동안 폴링 &rarr; curl로 HTTP 200 응답 확인 시 성공
+        </div>
+      </div>
+    </div>
+    <div class="decision">
+      <span class="decision-icon">⚠️</span>
+      <span>각 단계마다 실패 시 경고 메시지 + 수동 실행 안내를 출력하고 다음 단계로 진행</span>
+    </div>
+  </div>
+</div>
+
+<div class="arrow">▼</div>
+
+<!-- ============ PHASE 5 ============ -->
+<div class="phase phase-summary">
+  <div class="phase-header">
+    <span class="phase-num">5</span>
+    최종 요약 보고
+  </div>
+  <div class="phase-body">
+    <div class="step">
+      <span class="step-icon">📊</span>
+      <div class="step-content">
+        <div class="step-label">실행 결과 리포트</div>
+        <div class="step-detail">
+          완료된 스프린트: $SUCCESSFUL_SPRINTS / $total<br>
+          실패한 스프린트: $FAILED_SPRINTS<br>
+          GitHub Pages 생성: 성공/실패<br>
+          GitHub Pages 배포 확인: 검증됨/미검증<br>
+          랜딩 페이지 URL: https://$user.github.io/$repo/
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DEPENDENCIES ============ -->
+<div class="deps">
+  <h3>의존성 및 라이브러리 파일</h3>
+  <div class="dep-grid">
+    <div class="dep-item">
+      <span>📚</span>
+      <span class="file-ref">scripts/lib/ui-helpers.sh</span>
+      <span style="color:#6b7280; font-size:12px;">UI 출력 함수</span>
+    </div>
+    <div class="dep-item">
+      <span>📝</span>
+      <span class="file-ref">scripts/lib/context-generator.sh</span>
+      <span style="color:#6b7280; font-size:12px;">컨텍스트 생성</span>
+    </div>
+    <div class="dep-item">
+      <span>🔧</span>
+      <span class="file-ref">scripts/lib/ensure-github-cli.sh</span>
+      <span style="color:#6b7280; font-size:12px;">gh CLI 관리</span>
+    </div>
+    <div class="dep-item">
+      <span>🌐</span>
+      <span class="file-ref">scripts/lib/enable-github-pages.sh</span>
+      <span style="color:#6b7280; font-size:12px;">Pages API</span>
+    </div>
+    <div class="dep-item">
+      <span>🤖</span>
+      <span class="file-ref">scripts/setup/claude-eng</span>
+      <span style="color:#6b7280; font-size:12px;">Claude CLI 래퍼</span>
+    </div>
+    <div class="dep-item">
+      <span>📡</span>
+      <span class="file-ref">scripts/stream-json-parser.sh</span>
+      <span style="color:#6b7280; font-size:12px;">출력 파서</span>
+    </div>
+    <div class="dep-item">
+      <span>📊</span>
+      <span class="file-ref">scripts/publish/generate-pages-v2.sh</span>
+      <span style="color:#6b7280; font-size:12px;">Pages 생성기</span>
+    </div>
+    <div class="dep-item">
+      <span>📋</span>
+      <span class="file-ref">docs/index-template.html</span>
+      <span style="color:#6b7280; font-size:12px;">HTML 템플릿</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LEGEND ============ -->
+<div class="legend">
+  <div class="legend-title">범례</div>
+  <div class="legend-item">
+    <div class="legend-color" style="background:#7c3aed;"></div>
+    <span>사용자 입력 (대화형)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-color" style="background:#2563eb;"></div>
+    <span>컨텍스트 생성 (로컬 파일)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-color" style="background:#16a34a;"></div>
+    <span>AI 리서치 (Claude CLI 호출)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-color" style="background:#d97706;"></div>
+    <span>배포 (GitHub Pages)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-color" style="background:#059669;"></div>
+    <span>최종 요약</span>
+  </div>
+  <div class="legend-item">
+    <span style="font-size:14px;">🤖</span>
+    <span>= Claude CLI 호출</span>
+  </div>
+  <div class="legend-item">
+    <span style="border:1px dashed #9ca3af; padding:1px 6px; border-radius:4px; font-size:11px; color:#ea580c; background:#fff7ed;">loop</span>
+    <span>= 스프린트별 반복 실행</span>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

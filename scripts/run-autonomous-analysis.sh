@@ -118,6 +118,7 @@ START_TIME=$(date +%s)
 
 $CLAUDE_CMD -p "/discover-opportunities" \
   --output-format stream-json \
+  --verbose \
   --allowedTools "*" \
   --model sonnet \
   | while IFS= read -r line; do
@@ -150,6 +151,7 @@ START_TIME=$(date +%s)
 
 $CLAUDE_CMD -p "/execute-all" \
   --output-format stream-json \
+  --verbose \
   --allowedTools "*" \
   --model sonnet \
   | while IFS= read -r line; do

@@ -38,13 +38,6 @@ if [ ! -f "$SYSTEM_PROMPT_FILE" ]; then
     exit 1
 fi
 
-if [ "$VERBOSE" = true ]; then
-    echo "🔧 Claude Engineering Mode - YOLO Configuration"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "✓ System prompt loaded: $SYSTEM_PROMPT_FILE"
-    echo "✓ Model: $CLAUDE_MODEL"
-fi
-
 # Find claude executable
 # Allow PATH override for testing
 CLAUDE_EXEC="${CLAUDE_EXEC:-}"
@@ -60,16 +53,12 @@ if [ -z "$CLAUDE_EXEC" ]; then
 fi
 
 if [ "$VERBOSE" = true ]; then
-    echo "✓ Claude CLI found: $CLAUDE_EXEC"
-    echo "✓ YOLO mode enabled: All permissions bypassed"
-    echo "✓ Tools enabled: All (*)"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🚀 Starting autonomous research execution..."
+    echo "Claude Engineering Mode"
+    echo "  Model: $CLAUDE_MODEL"
+    echo "  System prompt: $SYSTEM_PROMPT_FILE"
+    echo "  Claude CLI: $CLAUDE_EXEC"
     echo ""
 fi
-
-# Execute claude with the system prompt and required permissions
-# Use stream-json with parser for maximum real-time visibility
 
 # Find the stream-json parser
 PARSER_SCRIPT="${SCRIPT_DIR}/../stream-json-parser.sh"
@@ -77,32 +66,23 @@ if [ ! -x "$PARSER_SCRIPT" ]; then
     PARSER_SCRIPT="$(dirname "$SCRIPT_DIR")/stream-json-parser.sh"
 fi
 
-# Check if we have the parser and jq
+# Use stream-json with parser for structured progress display
+# --verbose is required for stream-json with -p mode
 if [ -x "$PARSER_SCRIPT" ] && command -v jq &> /dev/null; then
-    # Use stream-json with parser for rich, real-time progress display
     exec "$CLAUDE_EXEC" --append-system-prompt "$(cat "$SYSTEM_PROMPT_FILE")" \
         --model "$CLAUDE_MODEL" \
         --allowedTools "*" \
         --dangerously-skip-permissions \
         --permission-mode "bypassPermissions" \
         --output-format stream-json \
-        --include-partial-messages \
+        --verbose \
         "$@" 2>&1 | "$PARSER_SCRIPT"
 else
-    # Fallback to default output with unbuffering
-    if command -v stdbuf &> /dev/null; then
-        exec stdbuf -oL -eL "$CLAUDE_EXEC" --append-system-prompt "$(cat "$SYSTEM_PROMPT_FILE")" \
-            --model "$CLAUDE_MODEL" \
-            --allowedTools "*" \
-            --dangerously-skip-permissions \
-            --permission-mode "bypassPermissions" \
-            "$@" 2>&1 >&2
-    else
-        exec "$CLAUDE_EXEC" --append-system-prompt "$(cat "$SYSTEM_PROMPT_FILE")" \
-            --model "$CLAUDE_MODEL" \
-            --allowedTools "*" \
-            --dangerously-skip-permissions \
-            --permission-mode "bypassPermissions" \
-            "$@" 2>&1 >&2
-    fi
+    # Fallback: plain text output (no parser/jq available)
+    exec "$CLAUDE_EXEC" --append-system-prompt "$(cat "$SYSTEM_PROMPT_FILE")" \
+        --model "$CLAUDE_MODEL" \
+        --allowedTools "*" \
+        --dangerously-skip-permissions \
+        --permission-mode "bypassPermissions" \
+        "$@"
 fi

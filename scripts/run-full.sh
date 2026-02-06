@@ -205,11 +205,7 @@ Respond with 'DISCOVERY COMPLETE - [number] opportunities identified' when done.
     echo -e "${YELLOW}  This may take 5-15 minutes... Progress updates will appear below.${NC}" | tee -a "$LOG_FILE"
     echo "" | tee -a "$LOG_FILE"
 
-    if command -v stdbuf &> /dev/null; then
-        stdbuf -oL -eL $CLAUDE_CMD -p "$discovery_prompt" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
-    else
-        $CLAUDE_CMD -p "$discovery_prompt" 2>&1 | tee -a "$LOG_FILE"
-    fi
+    $CLAUDE_CMD -p "$discovery_prompt" 2>&1 | tee -a "$LOG_FILE"
 
     # Wait for sprint files
     wait_for_sprint_files
@@ -277,13 +273,8 @@ run_sprint_execution_phase() {
 
             # Execute sprint and capture exit code
             local sprint_exit_code=0
-            if command -v stdbuf &> /dev/null; then
-                stdbuf -oL -eL $CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
-                sprint_exit_code=${PIPESTATUS[0]}
-            else
-                $CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&1 | tee -a "$LOG_FILE"
-                sprint_exit_code=${PIPESTATUS[0]}
-            fi
+            $CLAUDE_CMD -p "/execute-sprint $sprint_num_padded" 2>&1 | tee -a "$LOG_FILE"
+            sprint_exit_code=${PIPESTATUS[0]}
 
             # Check if sprint succeeded
             if [ $sprint_exit_code -eq 0 ]; then
@@ -320,11 +311,7 @@ run_export_phase() {
             echo "" | tee -a "$LOG_FILE"
             print_progress "Exporting Sprint $sprint_num ($export_num_current/$export_num_total) to $EXPORT_FORMAT format..."
 
-            if command -v stdbuf &> /dev/null; then
-                stdbuf -oL -eL $CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&1 | stdbuf -oL -eL tee -a "$LOG_FILE"
-            else
-                $CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
-            fi
+            $CLAUDE_CMD -p "/export-findings $sprint_num --format $EXPORT_FORMAT" 2>&1 | tee -a "$LOG_FILE"
         fi
     done
 }

@@ -2,12 +2,129 @@
   "meta": {
     "project_name": "",
     "industry": "",
-    "generated_at": "2026-02-04T23:57:06Z",
-    "repository_url": "https://github.com/id-ego/strategic-research-automation-template",
-    "sprint_count": 0,
-    "research_file_count": 0,
-    "total_tam_billions": 0,
-    "average_score": 0
+    "generated_at": "2026-02-05T04:27:41Z",
+    "repository_url": "https://github.com/id-ego/strategic-research-automation-template"
   },
-  "sprints": []
+  "sprints": [
+    {
+      "number": 01,
+      "number_padded": "01",
+      "title": "Final Report: Korean Local Platform Integration for ANAKONN Ankk Service",
+      "description": "This comprehensive analysis evaluates the strategic opportunity for ANAKONN's Ankk service to integrate with Korea's dominant local platforms—Naver and Kakao—to provide SNS marketing automation fo",
+      "score": 0,
+      "recommendation": "NO GO",
+      "recommendation_class": "no-go",
+      "tam": "",
+      "tam_numeric": ,
+      "tam_unit": "B",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-01-final-report.html",
+        "report_pdf": "reports/sprint-01-final-report.pdf",
+        "report_md": "reports/sprint-01-final-report.md"
+      },
+      "generated_at": "2026-02-05T10:00:09.217225298Z"
+    }
+,
+    {
+      "number": 02,
+      "number_padded": "02",
+      "title": "AI 콘텐츠 페르소나 고도화 및 브랜드 보이스 학습",
+      "description": "ANAKONN's Ankk premium tier represents a highly attractive market opportunity with an 86.7/100 opportunity score and a strong GO recommendation. The premium brand voice learning feature addresses a cr",
+      "score": 86,
+      "recommendation": "STRONG GO",
+      "recommendation_class": "strong-go",
+      "tam": "",
+      "tam_numeric": ,
+      "tam_unit": "B",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-02-final-report.html",
+        "report_pdf": "reports/sprint-02-final-report.pdf",
+        "report_md": "reports/sprint-02-final-report.md"
+      },
+      "generated_at": "2026-02-05T12:11:02.034631023Z"
+    }
+,
+    {
+      "number": 03,
+      "number_padded": "03",
+      "title": "Integrated Analytics Dashboard & AI Strategy Recommendations",
+      "description": "The Integrated Analytics Dashboard with AI-Powered Posting Recommendations represents a high-value strategic opportunity for ANAKONN INC to capture the rapidly growing Korean SMB social media manageme",
+      "score": 82,
+      "recommendation": "STRONG GO",
+      "recommendation_class": "strong-go",
+      "tam": "750M",
+      "tam_numeric": 0.75,
+      "tam_unit": "M",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-03-final-report.html",
+        "report_pdf": "reports/sprint-03-final-report.pdf",
+        "report_md": "reports/sprint-03-final-report.md"
+      },
+      "generated_at": "2026-02-05T10:56:39.203399928Z"
+    }
+,
+    {
+      "number": 04,
+      "number_padded": "04",
+      "title": "Executive Summary",
+      "description": "",
+      "score": 76,
+      "recommendation": "GO",
+      "recommendation_class": "go",
+      "tam": "1.62B",
+      "tam_numeric": 1.62,
+      "tam_unit": "B",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-04-final-report.html",
+        "report_pdf": "reports/sprint-04-final-report.pdf",
+        "report_md": "reports/sprint-04-final-report.md"
+      },
+      "generated_at": "2026-02-05T11:34:40.748105192Z"
+    }
+,
+    {
+      "number": 05,
+      "number_padded": "05",
+      "title": "Threads 및 숏폼 비디오 최적화<br/>(Reels, Shorts, TikTok)",
+      "description": "ANAKONN의 Ankk 플랫폼에 Threads 팔로워 마케팅 최적화와 AI 기반 숏폼 비디오 자동 생성 기능을 추가하는 Sprint 05는 ₩24.64B (Year 3)의 매출 잠재력을 가진 전�",
+      "score": 78,
+      "recommendation": "GO",
+      "recommendation_class": "go",
+      "tam": "",
+      "tam_numeric": ,
+      "tam_unit": "B",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-05-final-report.html",
+        "report_pdf": "reports/sprint-05-final-report.pdf",
+        "report_md": "reports/sprint-05-final-report.md"
+      },
+      "generated_at": "2026-02-05T12:41:06.401427887Z"
+    }
+,
+    {
+      "number": 06,
+      "number_padded": "06",
+      "title": "화이트라벨 솔루션 - 최종 전략 보고서",
+      "description": "ANAKONN INC의 Ankk 플랫폼을 B2C 모델에서 B2B2C 화이트라벨 솔루션으로 전환하는 전략적 기회를 평가한 결과, 종합 점수 76/100 (GO 권장) 으로 매력적인 시장 �",
+      "score": 76,
+      "recommendation": "GO",
+      "recommendation_class": "go",
+      "tam": "8.70B",
+      "tam_numeric": 8.70,
+      "tam_unit": "B",
+      "industry": "",
+      "files": {
+        "report_html": "reports/sprint-06-final-report.html",
+        "report_pdf": "reports/sprint-06-final-report.pdf",
+        "report_md": "reports/sprint-06-final-report.md"
+      },
+      "generated_at": "2026-02-05T13:20:18.822343375Z"
+    }
+
+  ]
 }

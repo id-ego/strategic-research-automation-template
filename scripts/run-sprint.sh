@@ -29,6 +29,7 @@ START_TIME=$(date +%s)
 
 $CLAUDE_CMD -p "/execute-sprint $SPRINT_NUM" \
   --output-format stream-json \
+  --verbose \
   --allowedTools "*" \
   | while IFS= read -r line; do
       echo "$line" | jq -r 'select(.type == "text") | .text' 2>/dev/null || true
